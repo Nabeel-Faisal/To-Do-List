@@ -37,13 +37,13 @@ export default function LoginPage() {
                 <CardTitle className="text-3xl">TaskFlow</CardTitle>
               </div>
               <CardDescription>
-                Enter your email below to login to your account
+                Enter your username and password below to login
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" required />
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" type="text" placeholder="e.g., alexdoe" required />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center">
