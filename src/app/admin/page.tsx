@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, LifeBuoy } from "lucide-react";
+import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,43 @@ export default function AdminDashboardPage() {
     { name: 'Attendance', icon: Calendar },
   ];
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'Dashboard':
+        return (
+          <>
+            <AdminOverview employees={mockEmployees} tasks={mockAdminTasks} />
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+              <div className="xl:col-span-2">
+                  <AdminProductivityChart />
+              </div>
+              <div className="space-y-8">
+                  <TaskMonitoring tasks={mockAdminTasks} />
+              </div>
+            </div>
+             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+                <div className="xl:col-span-2">
+                  <EmployeeManagement employees={mockEmployees} />
+                </div>
+                <div className="space-y-8">
+                  <AttendanceTracker employees={mockEmployees} />
+                </div>
+            </div>
+          </>
+        );
+      case 'Employees':
+        return <EmployeeManagement employees={mockEmployees} />;
+      case 'Tasks':
+        return <TaskMonitoring tasks={mockAdminTasks} />;
+      case 'Analytics':
+        return <AdminProductivityChart />;
+      case 'Attendance':
+        return <AttendanceTracker employees={mockEmployees} />;
+      default:
+        return <AdminOverview employees={mockEmployees} tasks={mockAdminTasks} />;
+    }
+  };
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
@@ -96,7 +133,7 @@ export default function AdminDashboardPage() {
         <header className="flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="md:hidden" />
           <div className="w-full flex-1">
-             <h1 className="text-lg font-semibold md:text-2xl">Admin Dashboard</h1>
+             <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -128,23 +165,7 @@ export default function AdminDashboardPage() {
           </DropdownMenu>
         </header>
         <main className="flex-1 p-4 md:p-8 space-y-8">
-          <AdminOverview employees={mockEmployees} tasks={mockAdminTasks} />
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-             <div className="xl:col-span-2">
-                <EmployeeManagement employees={mockEmployees} />
-             </div>
-             <div className="space-y-8">
-                <TaskMonitoring tasks={mockAdminTasks} />
-             </div>
-          </div>
-           <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-             <div className="xl:col-span-2">
-                <AdminProductivityChart />
-             </div>
-             <div className="space-y-8">
-                <AttendanceTracker employees={mockEmployees} />
-             </div>
-          </div>
+          {renderContent()}
         </main>
       </SidebarInset>
     </SidebarProvider>
