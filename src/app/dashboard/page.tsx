@@ -32,12 +32,12 @@ import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
 import { AddTaskDialog } from "@/components/dashboard/add-task-dialog";
-import { mockEmployee, mockTasks } from "@/lib/mock-data";
+import { mockEmployee, allTasks } from "@/lib/mock-data";
 import type { Task } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [tasks, setTasks] = React.useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = React.useState<Task[]>(allTasks);
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleAddTask = (newTask: Omit<Task, 'id' | 'assignedBy' | 'status'>) => {

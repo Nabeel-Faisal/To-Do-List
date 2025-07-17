@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar } from "lucide-react";
+import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, PlusCircle } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -34,14 +34,32 @@ import { EmployeeManagement } from "@/components/admin/employee-management";
 import { TaskMonitoring } from "@/components/admin/task-monitoring";
 import { AdminProductivityChart } from "@/components/admin/admin-productivity-chart";
 import { AttendanceTracker } from "@/components/admin/attendance-tracker";
-import { mockAdmin, mockEmployees, mockAdminTasks } from "@/lib/mock-data";
+import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
+import { allTasks, allEmployees, mockAdmin } from "@/lib/mock-data";
+import type { Task, Employee } from "@/lib/types";
+
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState('Dashboard');
+  const [tasks, setTasks] = React.useState<Task[]>(allTasks);
+  const [employees, setEmployees] = React.useState<Employee[]>(allEmployees);
 
   const handleLogout = () => {
     router.push('/');
+  };
+
+  const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
+    const taskToAdd: Task = {
+      ...newTask,
+      id: `task-${Date.now()}`,
+      status: "Pending",
+    };
+    setTasks((prevTasks) => [taskToAdd, ...prevTasks]);
+    // In a real app, you would likely refetch data or use a global state manager
+    // For this prototype, we'll just update the local state.
+    // To see the change on the employee dashboard, you would need to persist this change (e.g., localStorage)
+    // or navigate and pass data, but for now this demonstrates the admin-side action.
   };
   
   const menuItems = [
@@ -57,35 +75,35 @@ export default function AdminDashboardPage() {
       case 'Dashboard':
         return (
           <>
-            <AdminOverview employees={mockEmployees} tasks={mockAdminTasks} />
+            <AdminOverview employees={employees} tasks={tasks} />
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               <div className="xl:col-span-2">
                   <AdminProductivityChart />
               </div>
               <div className="space-y-8">
-                  <TaskMonitoring tasks={mockAdminTasks} />
+                  <TaskMonitoring tasks={tasks} />
               </div>
             </div>
              <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
                 <div className="xl:col-span-2">
-                  <EmployeeManagement employees={mockEmployees} />
+                  <EmployeeManagement employees={employees} />
                 </div>
                 <div className="space-y-8">
-                  <AttendanceTracker employees={mockEmployees} />
+                  <AttendanceTracker employees={employees} />
                 </div>
             </div>
           </>
         );
       case 'Employees':
-        return <EmployeeManagement employees={mockEmployees} />;
+        return <EmployeeManagement employees={employees} />;
       case 'Tasks':
-        return <TaskMonitoring tasks={mockAdminTasks} />;
+        return <TaskMonitoring tasks={tasks} />;
       case 'Analytics':
         return <AdminProductivityChart />;
       case 'Attendance':
-        return <AttendanceTracker employees={mockEmployees} />;
+        return <AttendanceTracker employees={employees} />;
       default:
-        return <AdminOverview employees={mockEmployees} tasks={mockAdminTasks} />;
+        return <AdminOverview employees={employees} tasks={tasks} />;
     }
   };
 
@@ -132,8 +150,9 @@ export default function AdminDashboardPage() {
       <SidebarInset>
         <header className="flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="md:hidden" />
-          <div className="w-full flex-1">
+          <div className="w-full flex-1 flex items-center justify-between">
              <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
+             {activeTab === 'Tasks' && <AssignTaskDialog onAssignTask={handleAssignTask} employees={employees} />}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

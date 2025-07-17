@@ -19,7 +19,7 @@ export const mockAdmin: Employee = {
   department: 'Administration',
 };
 
-export const mockTasks: Task[] = [
+const initialTasks: Task[] = [
   {
     id: 'task-1',
     title: 'Design homepage UI',
@@ -76,9 +76,37 @@ export const mockTasks: Task[] = [
     status: 'Pending',
     assignedBy: 'Jane Smith',
   },
+  {
+    id: 'task-8',
+    title: 'Review Q3 budget',
+    deadline: new Date(new Date().setDate(new Date().getDate() + 6)),
+    priority: 'High',
+    status: 'Pending',
+    assignedBy: 'Admin User',
+  },
+  {
+    id: 'task-9',
+    title: 'Onboard new hires',
+    deadline: new Date(new Date().setDate(new Date().getDate() + 8)),
+    priority: 'Medium',
+    status: 'Pending',
+    assignedBy: 'Admin User',
+  },
+  {
+    id: 'task-10',
+    title: 'Finalize server migration plan',
+    deadline: new Date(new Date().setDate(new Date().getDate() -1)),
+    priority: 'High',
+    status: 'Completed',
+    assignedBy: 'Jane Smith'
+  }
 ];
 
-export const mockEmployees: Employee[] = [
+
+// Unified data source
+export let allTasks: Task[] = [...initialTasks];
+
+export const allEmployees: Employee[] = [
   { ...mockEmployee },
   {
     id: 'emp-002',
@@ -116,32 +144,4 @@ export const mockEmployees: Employee[] = [
     status: 'Inactive',
     lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
   },
-];
-
-export const mockAdminTasks: Task[] = [
-  ...mockTasks,
-  {
-    id: 'task-8',
-    title: 'Review Q3 budget',
-    deadline: new Date(new Date().setDate(new Date().getDate() + 6)),
-    priority: 'High',
-    status: 'Pending',
-    assignedBy: 'Admin User',
-  },
-  {
-    id: 'task-9',
-    title: 'Onboard new hires',
-    deadline: new Date(new Date().setDate(new Date().getDate() + 8)),
-    priority: 'Medium',
-    status: 'Pending',
-    assignedBy: 'Admin User',
-  },
-  {
-    id: 'task-10',
-    title: 'Finalize server migration plan',
-    deadline: new Date(new Date().setDate(new Date().getDate() -1)),
-    priority: 'High',
-    status: 'Completed',
-    assignedBy: 'Jane Smith'
-  }
 ];
