@@ -42,7 +42,8 @@ export default function DashboardPage() {
 
   // This effect runs when the component mounts, ensuring it gets the latest task list.
   React.useEffect(() => {
-    setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe' || t.assignedBy === 'Me'));
+    // This dashboard shows tasks for the sample employee ("Alex Doe")
+    setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe'));
   }, []);
 
   const handleAddTask = (newTask: Omit<Task, 'id' | 'assignedBy' | 'status' | 'assignedTo'>) => {
@@ -50,7 +51,7 @@ export default function DashboardPage() {
       ...newTask,
       id: `task-${Date.now()}`,
       assignedBy: "Me",
-      assignedTo: "Alex Doe", // Self-assigned tasks are assigned to Alex Doe
+      assignedTo: "Alex Doe", // Self-assigned tasks are assigned to the sample employee
       status: "Pending",
     };
     allTasks.unshift(taskToAdd);
@@ -94,7 +95,7 @@ export default function DashboardPage() {
           </div>
         </SidebarContent>
         <SidebarFooter>
-           <div className="flex flex-col gap-2 w-full">
+           <div className="flex flex-col gap-2 w-full p-4">
             <ThemeToggle />
             <Button 
               variant="ghost" 

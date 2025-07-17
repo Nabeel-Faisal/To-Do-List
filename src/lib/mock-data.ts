@@ -3,7 +3,7 @@ import type { Task, Employee } from './types';
 
 export const mockEmployee: Employee = {
   id: 'emp-001',
-  name: 'Alex Doe',
+  name: 'Sample Employee',
   photo: 'https://placehold.co/100x100.png',
   role: 'Software Engineer',
   department: 'Technology',
@@ -117,7 +117,8 @@ const initialTasks: Task[] = [
 export let allTasks: Task[] = [...initialTasks];
 
 export const allEmployees: Employee[] = [
-  { ...mockEmployee },
+  // The first employee is our sample employee. We change the name but keep the ID for assignments.
+  { ...mockEmployee, id: 'emp-001', name: 'Alex Doe' }, 
   {
     id: 'emp-002',
     name: 'Jane Smith',

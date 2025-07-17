@@ -51,7 +51,6 @@ const formSchema = z.object({
     required_error: "A deadline is required.",
   }),
   priority: z.enum(["High", "Medium", "Low"]),
-  assignedTo: z.string({ required_error: "Please select an employee." }),
 });
 
 type AssignTaskDialogProps = {
@@ -78,11 +77,11 @@ export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogPr
       deadline: values.deadline,
       priority: values.priority,
       assignedBy: "Admin User",
-      assignedTo: values.assignedTo,
+      assignedTo: "Alex Doe", // Assign to the sample employee
     });
     toast({
       title: "Task Assigned",
-      description: `"${values.title}" has been assigned to ${values.assignedTo}.`,
+      description: `"${values.title}" has been assigned to the sample employee.`,
     });
     form.reset();
     setOpen(false);
@@ -138,7 +137,7 @@ export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogPr
         <DialogHeader>
           <DialogTitle>Assign New Task</DialogTitle>
           <DialogDescription>
-            Fill in the details below to assign a new task.
+            Fill in the details below to assign a new task to an employee.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -152,28 +151,6 @@ export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogPr
                   <FormControl>
                     <Input placeholder="e.g., Finalize project report" {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="assignedTo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assign To</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an employee" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {employees.map(emp => (
-                           <SelectItem key={emp.id} value={emp.name}>{emp.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   <FormMessage />
                 </FormItem>
               )}
