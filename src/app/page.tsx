@@ -1,7 +1,9 @@
 
 'use client';
 
+import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,15 +14,26 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Logo } from '@/components/icons';
 import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/dashboard');
+    setError('');
+
+    // Check for the demo credentials
+    if (username === 'alexdoe' && password === 'password123') {
+      router.push('/dashboard');
+    } else {
+      setError('Invalid username or password. Please try again.');
+    }
   };
 
   return (
@@ -41,9 +54,23 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Login Failed</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input id="username" type="text" placeholder="e.g., alexdoe" required />
+                <Input 
+                  id="username" 
+                  type="text" 
+                  placeholder="e.g., alexdoe" 
+                  required 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center">
@@ -52,7 +79,13 @@ export default function LoginPage() {
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full">
                 Login
