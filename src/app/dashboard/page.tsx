@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Bell, Search } from "lucide-react";
+import { Bell, LogOut, Search } from "lucide-react";
+import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import { mockEmployee, mockTasks } from "@/lib/mock-data";
 import type { Task } from "@/lib/types";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [tasks, setTasks] = React.useState<Task[]>(mockTasks);
   const [searchTerm, setSearchTerm] = React.useState("");
 
@@ -50,6 +52,10 @@ export default function DashboardPage() {
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const handleLogout = () => {
+    router.push('/');
+  };
 
   return (
     <SidebarProvider>
@@ -63,7 +69,16 @@ export default function DashboardPage() {
         <SidebarContent className="p-2">
           <EmployeeProfile employee={mockEmployee} />
         </SidebarContent>
-        <SidebarFooter>
+        <SidebarFooter className="flex-col !items-start p-2 gap-2">
+           <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+          </Button>
           <ThemeToggle />
         </SidebarFooter>
       </Sidebar>
