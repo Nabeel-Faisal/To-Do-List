@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = React.useState('Dashboard');
 
   React.useEffect(() => {
+    // This now runs only on the client, preventing hydration errors
     setAllTasks(getInitialTasks());
     setNotifications(getNotifications());
   }, []);
@@ -98,12 +99,6 @@ export default function DashboardPage() {
   ];
 
   const renderContent = () => {
-    const currentTasks = getInitialTasks();
-    const employeeTasks = currentTasks.filter(t => t.assignedTo === 'Sample Employee');
-    const filteredTasks = employeeTasks.filter(task =>
-      task.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     switch (activeTab) {
       case 'Dashboard':
         return (
@@ -198,7 +193,7 @@ export default function DashboardPage() {
                 </div>
               )}
           </div>
-          <DropdownMenu onOpenChange={(open) => { if (open) handleNotificationClick() }}>
+          <DropdownMenu onOpenChange={(open) => { if (!open) handleNotificationClick() }}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="h-10 w-10 relative">
                 <Bell className="h-5 w-5" />

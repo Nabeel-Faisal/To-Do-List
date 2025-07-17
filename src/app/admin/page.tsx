@@ -35,8 +35,8 @@ import { TaskMonitoring } from "@/components/admin/task-monitoring";
 import { AdminProductivityChart } from "@/components/admin/admin-productivity-chart";
 import { AttendanceTracker } from "@/components/admin/attendance-tracker";
 import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
-import { getInitialTasks, saveTasks, allEmployees, mockAdmin, addNotification } from "@/lib/mock-data";
-import type { Task, Employee } from "@/lib/types";
+import { getInitialTasks, saveTasks, allEmployees, mockAdmin, addNotification, getNotifications } from "@/lib/mock-data";
+import type { Task, Employee, AppNotification } from "@/lib/types";
 
 
 export default function AdminDashboardPage() {
@@ -44,9 +44,12 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = React.useState('Dashboard');
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const [employees, setEmployees] = React.useState<Employee[]>(allEmployees);
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
 
   React.useEffect(() => {
     setTasks(getInitialTasks());
+    setEmployees(allEmployees);
+    setNotifications(getNotifications());
   }, []);
 
   const handleLogout = () => {
@@ -70,6 +73,8 @@ export default function AdminDashboardPage() {
       message: `New task assigned: "${taskToAdd.title}"`,
       read: false,
     });
+    // To see notification update in real-time on this dashboard
+    setNotifications(getNotifications());
   };
   
   const menuItems = [
@@ -81,18 +86,17 @@ export default function AdminDashboardPage() {
   ];
 
   const renderContent = () => {
-    const currentTasks = getInitialTasks();
     switch (activeTab) {
       case 'Dashboard':
         return (
           <>
-            <AdminOverview employees={employees} tasks={currentTasks} />
+            <AdminOverview employees={employees} tasks={tasks} />
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               <div className="xl:col-span-2">
                   <AdminProductivityChart />
               </div>
               <div className="space-y-8">
-                  <TaskMonitoring tasks={currentTasks} />
+                  <TaskMonitoring tasks={tasks} />
               </div>
             </div>
              <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
@@ -108,13 +112,13 @@ export default function AdminDashboardPage() {
       case 'Employees':
         return <EmployeeManagement employees={employees} />;
       case 'Tasks':
-        return <TaskMonitoring tasks={currentTasks} />;
+        return <TaskMonitoring tasks={tasks} />;
       case 'Analytics':
         return <AdminProductivityChart />;
       case 'Attendance':
         return <AttendanceTracker employees={employees} />;
       default:
-        return <AdminOverview employees={employees} tasks={currentTasks} />;
+        return <AdminOverview employees={employees} tasks={tasks} />;
     }
   };
 
@@ -175,7 +179,13 @@ export default function AdminDashboardPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>No new notifications</DropdownMenuItem>
+              {notifications.length > 0 ? (
+                 notifications.map(notif => (
+                   <DropdownMenuItem key={notif.id}>{notif.message}</DropdownMenuItem>
+                 ))
+              ) : (
+                <DropdownMenuItem>No new notifications</DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
            <DropdownMenu>
