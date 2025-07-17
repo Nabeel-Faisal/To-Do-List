@@ -1,3 +1,4 @@
+
 export type TaskPriority = "High" | "Medium" | "Low";
 
 export type TaskStatus = "Pending" | "Completed";
@@ -11,9 +12,14 @@ export type Task = {
   assignedBy: string;
 };
 
+export type EmployeeStatus = "Active" | "On Leave" | "Inactive";
+
 export type Employee = {
+  id: string;
   name: string;
   photo: string;
   role: string;
   department: string;
+  status?: EmployeeStatus;
+  lastLogin?: string;
 };

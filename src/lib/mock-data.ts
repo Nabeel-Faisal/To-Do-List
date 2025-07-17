@@ -1,10 +1,22 @@
+
 import type { Task, Employee } from './types';
 
 export const mockEmployee: Employee = {
+  id: 'emp-001',
   name: 'Alex Doe',
   photo: 'https://placehold.co/100x100.png',
   role: 'Software Engineer',
   department: 'Technology',
+  status: 'Active',
+  lastLogin: new Date().toISOString(),
+};
+
+export const mockAdmin: Employee = {
+  id: 'adm-001',
+  name: 'Admin User',
+  photo: 'https://placehold.co/100x100.png',
+  role: 'System Administrator',
+  department: 'Administration',
 };
 
 export const mockTasks: Task[] = [
@@ -64,4 +76,72 @@ export const mockTasks: Task[] = [
     status: 'Pending',
     assignedBy: 'Jane Smith',
   },
+];
+
+export const mockEmployees: Employee[] = [
+  { ...mockEmployee },
+  {
+    id: 'emp-002',
+    name: 'Jane Smith',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Project Manager',
+    department: 'Management',
+    status: 'Active',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
+  },
+  {
+    id: 'emp-003',
+    name: 'John Doe',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Lead Designer',
+    department: 'Design',
+    status: 'On Leave',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
+  },
+  {
+    id: 'emp-004',
+    name: 'Emily White',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Marketing Specialist',
+    department: 'Marketing',
+    status: 'Active',
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'emp-005',
+    name: 'Michael Brown',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'QA Tester',
+    department: 'Technology',
+    status: 'Inactive',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
+  },
+];
+
+export const mockAdminTasks: Task[] = [
+  ...mockTasks,
+  {
+    id: 'task-8',
+    title: 'Review Q3 budget',
+    deadline: new Date(new Date().setDate(new Date().getDate() + 6)),
+    priority: 'High',
+    status: 'Pending',
+    assignedBy: 'Admin User',
+  },
+  {
+    id: 'task-9',
+    title: 'Onboard new hires',
+    deadline: new Date(new Date().setDate(new Date().getDate() + 8)),
+    priority: 'Medium',
+    status: 'Pending',
+    assignedBy: 'Admin User',
+  },
+  {
+    id: 'task-10',
+    title: 'Finalize server migration plan',
+    deadline: new Date(new Date().setDate(new Date().getDate() -1)),
+    priority: 'High',
+    status: 'Completed',
+    assignedBy: 'Jane Smith'
+  }
 ];

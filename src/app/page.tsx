@@ -29,7 +29,9 @@ export default function LoginPage() {
     setError('');
 
     // Check for the demo credentials
-    if (username === 'alexdoe' && password === 'password123') {
+    if (username === 'admin' && password === 'admin123') {
+      router.push('/admin');
+    } else if (username === 'alexdoe' && password === 'password123') {
       router.push('/dashboard');
     } else {
       setError('Invalid username or password. Please try again.');
@@ -66,7 +68,7 @@ export default function LoginPage() {
                 <Input 
                   id="username" 
                   type="text" 
-                  placeholder="e.g., alexdoe" 
+                  placeholder="e.g., alexdoe or admin" 
                   required 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
