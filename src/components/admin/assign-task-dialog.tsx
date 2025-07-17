@@ -54,7 +54,7 @@ const formSchema = z.object({
 });
 
 type AssignTaskDialogProps = {
-  onAssignTask: (task: Omit<Task, 'id' | 'status' | 'assignedTo'>) => void;
+  onAssignTask: (task: Omit<Task, 'id' | 'status'>) => void;
 };
 
 export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
@@ -76,6 +76,7 @@ export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
       deadline: values.deadline,
       priority: values.priority,
       assignedBy: "Admin User",
+      assignedTo: "Alex Doe" // Always assign to the sample employee
     });
     toast({
       title: "Task Assigned",

@@ -34,7 +34,7 @@ import { TaskOverview } from "@/components/dashboard/task-overview";
 import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
-import { mockEmployee, allTasks, allNotifications, markNotificationsAsRead } from "@/lib/mock-data";
+import { mockEmployee, getInitialTasks, saveTasks, allNotifications, markNotificationsAsRead } from "@/lib/mock-data";
 import type { Task, AppNotification } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
@@ -49,29 +49,29 @@ const PlaceholderContent = ({ title, text }: { title: string, text: string }) =>
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [tasks, setTasks] = React.useState<Task[]>([]);
+  const [allTasks, setAllTasks] = React.useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [notifications, setNotifications] = React.useState<AppNotification[]>(allNotifications);
   const [activeTab, setActiveTab] = React.useState('Dashboard');
 
   React.useEffect(() => {
-    setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe'));
+    setAllTasks(getInitialTasks());
     setNotifications(allNotifications);
   }, []);
 
+  const employeeTasks = allTasks.filter(t => t.assignedTo === 'Alex Doe');
+
   const toggleTaskCompletion = (taskId: string) => {
-    const taskInAll = allTasks.find(t => t.id === taskId);
-    if (taskInAll) {
-      taskInAll.status = taskInAll.status === 'Completed' ? 'Pending' : 'Completed';
-    }
-    setTasks(tasks.map(task => 
+    const updatedTasks = allTasks.map(task => 
       task.id === taskId 
         ? { ...task, status: task.status === 'Completed' ? 'Pending' : 'Completed' }
         : task
-    ));
+    );
+    setAllTasks(updatedTasks);
+    saveTasks(updatedTasks);
   };
   
-  const filteredTasks = tasks.filter(task =>
+  const filteredTasks = employeeTasks.filter(task =>
     task.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
@@ -102,13 +102,13 @@ export default function DashboardPage() {
       case 'Dashboard':
         return (
           <>
-            <TaskOverview tasks={tasks} />
+            <TaskOverview tasks={employeeTasks} />
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                 <ProductivityChart tasks={tasks} />
+                 <ProductivityChart tasks={employeeTasks} />
               </div>
                <div className="space-y-8">
-                <UpcomingDeadlines tasks={tasks} />
+                <UpcomingDeadlines tasks={employeeTasks} />
               </div>
             </div>
           </>

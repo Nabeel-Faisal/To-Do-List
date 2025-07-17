@@ -35,41 +35,40 @@ import { TaskMonitoring } from "@/components/admin/task-monitoring";
 import { AdminProductivityChart } from "@/components/admin/admin-productivity-chart";
 import { AttendanceTracker } from "@/components/admin/attendance-tracker";
 import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
-import { allTasks, allEmployees, mockAdmin, addNotification } from "@/lib/mock-data";
+import { getInitialTasks, saveTasks, allEmployees, mockAdmin, addNotification } from "@/lib/mock-data";
 import type { Task, Employee } from "@/lib/types";
 
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState('Dashboard');
-  const [tasks, setTasks] = React.useState<Task[]>(allTasks);
+  const [tasks, setTasks] = React.useState<Task[]>([]);
   const [employees, setEmployees] = React.useState<Employee[]>(allEmployees);
+
+  React.useEffect(() => {
+    setTasks(getInitialTasks());
+  }, []);
 
   const handleLogout = () => {
     router.push('/');
   };
 
-  const handleAssignTask = (newTask: Omit<Task, 'id' | 'status' | 'assignedTo'>) => {
-    const assignedEmployee = allEmployees.find(e => e.name === 'Alex Doe');
-    if (!assignedEmployee) return;
-
+  const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
     const taskToAdd: Task = {
       ...newTask,
       id: `task-${Date.now()}`,
       status: "Pending",
-      assignedTo: assignedEmployee.name,
     };
     
-    // Add to the shared "database"
-    allTasks.unshift(taskToAdd);
-    // Add a notification for the employee
+    const updatedTasks = [taskToAdd, ...tasks];
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks);
+
     addNotification({
       id: `notif-${Date.now()}`,
       message: `New task assigned: "${taskToAdd.title}"`,
       read: false,
     });
-    // Update local state to trigger re-render
-    setTasks([...allTasks]);
   };
   
   const menuItems = [

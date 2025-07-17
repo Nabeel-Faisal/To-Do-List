@@ -110,10 +110,48 @@ const initialTasks: Task[] = [
     assignedBy: 'Jane Smith',
     assignedTo: 'John Doe',
   }
-];
+].map(task => ({...task, deadline: new Date(task.deadline).toISOString()})); // Ensure dates are strings for serialization
 
-// Unified data source
-export let allTasks: Task[] = [...initialTasks];
+
+// --- localStorage Persistence ---
+const TASKS_STORAGE_KEY = 'taskflow_tasks';
+
+// This function now returns the initial state, which will be managed in components
+export const getInitialTasks = (): Task[] => {
+  if (typeof window === 'undefined') {
+    return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
+  }
+  try {
+    const storedTasks = window.localStorage.getItem(TASKS_STORAGE_KEY);
+    if (storedTasks) {
+      return JSON.parse(storedTasks).map((task: any) => ({
+        ...task,
+        deadline: new Date(task.deadline),
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to parse tasks from localStorage", error);
+  }
+  
+  // If nothing in storage, set initial tasks
+  window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialTasks));
+  return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
+};
+
+export const saveTasks = (tasks: Task[]) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const tasksToStore = tasks.map(task => ({
+        ...task,
+        deadline: new Date(task.deadline).toISOString()
+    }));
+    window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksToStore));
+  } catch (error) {
+    console.error("Failed to save tasks to localStorage", error);
+  }
+};
+// --- End of localStorage Persistence ---
+
 
 export const allEmployees: Employee[] = [
   // The first employee is our sample employee. We change the name but keep the ID for assignments.
