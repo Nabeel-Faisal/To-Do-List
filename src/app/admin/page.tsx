@@ -171,44 +171,50 @@ export default function AdminDashboardPage() {
           <SidebarTrigger className="md:hidden" />
           <div className="w-full flex-1 flex items-center justify-between">
              <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
-             <AssignTaskDialog onAssignTask={handleAssignTask} />
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-10 w-10">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Toggle notifications</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {notifications.length > 0 ? (
-                 notifications.map(notif => (
-                   <DropdownMenuItem key={notif.id}>{notif.message}</DropdownMenuItem>
-                 ))
-              ) : (
-                <DropdownMenuItem>No new notifications</DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-10 w-10">
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Settings</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Settings</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Manage Users</DropdownMenuItem>
-              <DropdownMenuItem>System</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-10 w-10">
+                  <Bell className="h-5 w-5" />
+                  <span className="sr-only">Toggle notifications</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.length > 0 ? (
+                  notifications.map(notif => (
+                    <DropdownMenuItem key={notif.id}>{notif.message}</DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem>No new notifications</DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-10 w-10">
+                  <Settings className="h-5 w-5" />
+                  <span className="sr-only">Settings</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Manage Users</DropdownMenuItem>
+                <DropdownMenuItem>System</DropdownMenuItem>
+                <DropdownMenuItem>Support</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
         <main className="flex-1 p-4 md:p-8 space-y-8">
+            {activeTab === 'Tasks' && (
+                <div className="flex items-center justify-end">
+                    <AssignTaskDialog onAssignTask={handleAssignTask} />
+                </div>
+            )}
           {renderContent()}
         </main>
       </SidebarInset>
