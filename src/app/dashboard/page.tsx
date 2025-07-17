@@ -31,7 +31,6 @@ import { TaskOverview } from "@/components/dashboard/task-overview";
 import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
-import { AddTaskDialog } from "@/components/dashboard/add-task-dialog";
 import { mockEmployee, allTasks } from "@/lib/mock-data";
 import type { Task } from "@/lib/types";
 
@@ -45,18 +44,6 @@ export default function DashboardPage() {
     // This dashboard shows tasks for the sample employee ("Alex Doe")
     setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe'));
   }, []);
-
-  const handleAddTask = (newTask: Omit<Task, 'id' | 'assignedBy' | 'status' | 'assignedTo'>) => {
-    const taskToAdd: Task = {
-      ...newTask,
-      id: `task-${Date.now()}`,
-      assignedBy: "Me",
-      assignedTo: "Alex Doe", // Self-assigned tasks are assigned to the sample employee
-      status: "Pending",
-    };
-    allTasks.unshift(taskToAdd);
-    setTasks([taskToAdd, ...tasks]);
-  };
 
   const toggleTaskCompletion = (taskId: string) => {
      // Find the task in the master list and update its status
@@ -125,7 +112,6 @@ export default function DashboardPage() {
               </div>
             </form>
           </div>
-          <AddTaskDialog onAddTask={handleAddTask} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="h-10 w-10">
