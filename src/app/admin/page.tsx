@@ -55,11 +55,11 @@ export default function AdminDashboardPage() {
       id: `task-${Date.now()}`,
       status: "Pending",
     };
-    setTasks((prevTasks) => [taskToAdd, ...prevTasks]);
-    // In a real app, you would likely refetch data or use a global state manager
-    // For this prototype, we'll just update the local state.
-    // To see the change on the employee dashboard, you would need to persist this change (e.g., localStorage)
-    // or navigate and pass data, but for now this demonstrates the admin-side action.
+    
+    // Add to the shared "database"
+    allTasks.unshift(taskToAdd);
+    // Update local state to trigger re-render
+    setTasks([...allTasks]);
   };
   
   const menuItems = [
