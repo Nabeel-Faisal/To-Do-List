@@ -163,7 +163,7 @@ export default function AdminDashboardPage() {
           <SidebarTrigger className="md:hidden" />
           <div className="w-full flex-1 flex items-center justify-between">
              <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
-             {activeTab === 'Tasks' && <AssignTaskDialog onAssignTask={handleAssignTask} />}
+             <AssignTaskDialog onAssignTask={handleAssignTask} />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

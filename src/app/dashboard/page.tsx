@@ -34,7 +34,7 @@ import { TaskOverview } from "@/components/dashboard/task-overview";
 import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
-import { mockEmployee, getInitialTasks, saveTasks, allNotifications, markNotificationsAsRead } from "@/lib/mock-data";
+import { mockEmployee, getInitialTasks, saveTasks, getNotifications, markNotificationsAsRead } from "@/lib/mock-data";
 import type { Task, AppNotification } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
@@ -56,7 +56,7 @@ export default function DashboardPage() {
 
   React.useEffect(() => {
     setAllTasks(getInitialTasks());
-    setNotifications(allNotifications);
+    setNotifications(getNotifications());
   }, []);
 
   const employeeTasks = allTasks.filter(t => t.assignedTo === 'Sample Employee');
@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
   const handleNotificationClick = () => {
     markNotificationsAsRead();
-    setNotifications([...allNotifications]);
+    setNotifications(getNotifications());
   };
   
   const menuItems = [
@@ -198,12 +198,12 @@ export default function DashboardPage() {
                 </div>
               )}
           </div>
-          <DropdownMenu onOpenChange={(open) => open && handleNotificationClick()}>
+          <DropdownMenu onOpenChange={(open) => { if (open) handleNotificationClick() }}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="h-10 w-10 relative">
                 <Bell className="h-5 w-5" />
                 {unreadNotificationCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full flex items-center justify-center bg-red-500 text-white">
+                  <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full flex items-center justify-center bg-destructive text-destructive-foreground">
                     {unreadNotificationCount}
                   </Badge>
                 )}
@@ -215,7 +215,7 @@ export default function DashboardPage() {
               <DropdownMenuSeparator />
               {notifications.length > 0 ? (
                 notifications.map(notif => (
-                   <DropdownMenuItem key={notif.id} className={`text-wrap ${notif.read ? '' : 'font-bold'}`}>
+                   <DropdownMenuItem key={notif.id} className={`text-wrap ${!notif.read ? 'font-bold' : ''}`}>
                     {notif.message}
                   </DropdownMenuItem>
                 ))

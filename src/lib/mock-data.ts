@@ -113,10 +113,9 @@ const initialTasks: Task[] = [
 ].map(task => ({...task, deadline: new Date(task.deadline).toISOString()})); // Ensure dates are strings for serialization
 
 
-// --- localStorage Persistence ---
+// --- localStorage Persistence for Tasks ---
 const TASKS_STORAGE_KEY = 'taskflow_tasks';
 
-// This function now returns the initial state, which will be managed in components
 export const getInitialTasks = (): Task[] => {
   if (typeof window === 'undefined') {
     return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
@@ -128,14 +127,14 @@ export const getInitialTasks = (): Task[] => {
         ...task,
         deadline: new Date(task.deadline),
       }));
+    } else {
+       window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialTasks));
+       return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
     }
   } catch (error) {
     console.error("Failed to parse tasks from localStorage", error);
+    return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
   }
-  
-  // If nothing in storage, set initial tasks
-  window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialTasks));
-  return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
 };
 
 export const saveTasks = (tasks: Task[]) => {
@@ -150,7 +149,45 @@ export const saveTasks = (tasks: Task[]) => {
     console.error("Failed to save tasks to localStorage", error);
   }
 };
-// --- End of localStorage Persistence ---
+// --- End of Task Persistence ---
+
+
+// --- localStorage Persistence for Notifications ---
+const NOTIFICATIONS_STORAGE_KEY = 'taskflow_notifications';
+
+export const getNotifications = (): AppNotification[] => {
+    if (typeof window === 'undefined') return [];
+    try {
+        const stored = window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error("Failed to get notifications from localStorage", error);
+        return [];
+    }
+}
+
+export const addNotification = (notification: AppNotification) => {
+    if (typeof window === 'undefined') return;
+    const currentNotifications = getNotifications();
+    const updatedNotifications = [notification, ...currentNotifications];
+    try {
+        window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(updatedNotifications));
+    } catch (error) {
+        console.error("Failed to save notifications to localStorage", error);
+    }
+}
+
+export const markNotificationsAsRead = () => {
+    if (typeof window === 'undefined') return;
+    const currentNotifications = getNotifications();
+    const updatedNotifications = currentNotifications.map(n => ({ ...n, read: true }));
+    try {
+        window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(updatedNotifications));
+    } catch (error) {
+        console.error("Failed to mark notifications as read in localStorage", error);
+    }
+}
+// --- End of Notification Persistence ---
 
 
 export const allEmployees: Employee[] = [
@@ -193,14 +230,3 @@ export const allEmployees: Employee[] = [
     lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
   },
 ];
-
-// Mock notifications
-export let allNotifications: AppNotification[] = [];
-
-export function addNotification(notification: AppNotification) {
-  allNotifications.unshift(notification);
-}
-
-export function markNotificationsAsRead() {
-  allNotifications.forEach(n => n.read = true);
-}

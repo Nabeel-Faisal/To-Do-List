@@ -146,7 +146,7 @@ export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Task Title</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Finalize project report" {...field} />
                   </FormControl>
