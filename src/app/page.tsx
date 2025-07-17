@@ -1,108 +1,66 @@
-"use client";
 
-import * as React from "react";
-import { Bell, Search } from "lucide-react";
+'use client';
 
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Sidebar,
-  SidebarProvider,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/components/ui/sidebar";
-import { EmployeeProfile } from "@/components/dashboard/employee-profile";
-import { ThemeToggle } from "@/components/dashboard/theme-toggle";
-import { Logo } from "@/components/icons";
-import { TaskOverview } from "@/components/dashboard/task-overview";
-import { ProductivityChart } from "@/components/dashboard/productivity-chart";
-import { TaskList } from "@/components/dashboard/task-list";
-import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
-import { AddTaskDialog } from "@/components/dashboard/add-task-dialog";
-import { mockEmployee, mockTasks } from "@/lib/mock-data";
-import type { Task } from "@/lib/types";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Logo } from '@/components/icons';
+import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 
-export default function DashboardPage() {
-  const [tasks, setTasks] = React.useState<Task[]>(mockTasks);
-  const [searchTerm, setSearchTerm] = React.useState("");
+export default function LoginPage() {
+  const router = useRouter();
 
-  const handleAddTask = (newTask: Omit<Task, 'id' | 'assignedBy' | 'status'>) => {
-    const taskToAdd: Task = {
-      ...newTask,
-      id: `task-${Date.now()}`,
-      assignedBy: "Me",
-      status: "Pending",
-    };
-    setTasks((prevTasks) => [taskToAdd, ...prevTasks]);
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push('/dashboard');
   };
-
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, status: task.status === 'Completed' ? 'Pending' : 'Completed' }
-        : task
-    ));
-  };
-  
-  const filteredTasks = tasks.filter(task =>
-    task.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <Logo className="size-8 text-primary" />
-            <span className="text-xl font-semibold">TaskFlow</span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent className="p-2">
-          <EmployeeProfile employee={mockEmployee} />
-        </SidebarContent>
-        <SidebarFooter>
-          <ThemeToggle />
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
-          <SidebarTrigger className="md:hidden" />
-          <div className="w-full flex-1">
-            <form>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search tasks..."
-                  className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+    <div className="relative min-h-screen flex items-center justify-center bg-background">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <div className="w-full max-w-md p-4">
+        <form onSubmit={handleLogin}>
+          <Card>
+            <CardHeader className="space-y-1 text-center">
+              <div className="flex justify-center items-center gap-2 mb-4">
+                <Logo className="size-10 text-primary" />
+                <CardTitle className="text-3xl">TaskFlow</CardTitle>
               </div>
-            </form>
-          </div>
-          <AddTaskDialog onAddTask={handleAddTask} />
-          <Button variant="outline" size="icon" className="h-8 w-8">
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
-        </header>
-        <main className="flex-1 p-4 md:p-6 space-y-6">
-          <TaskOverview tasks={tasks} />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-            <div className="lg:col-span-5">
-              <TaskList tasks={filteredTasks} onToggleTask={toggleTaskCompletion} />
-            </div>
-            <div className="lg:col-span-2 space-y-6">
-              <ProductivityChart tasks={tasks} />
-              <UpcomingDeadlines tasks={tasks} />
-            </div>
-          </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+              <CardDescription>
+                Enter your email below to login to your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="m@example.com" required />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <a href="#" className="ml-auto inline-block text-sm underline">
+                    Forgot your password?
+                  </a>
+                </div>
+                <Input id="password" type="password" required />
+              </div>
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+            </CardContent>
+          </Card>
+        </form>
+      </div>
+    </div>
   );
 }
