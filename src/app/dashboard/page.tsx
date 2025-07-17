@@ -51,7 +51,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [allTasks, setAllTasks] = React.useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [notifications, setNotifications] = React.useState<AppNotification[]>(allNotifications);
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
   const [activeTab, setActiveTab] = React.useState('Dashboard');
 
   React.useEffect(() => {
@@ -59,7 +59,7 @@ export default function DashboardPage() {
     setNotifications(allNotifications);
   }, []);
 
-  const employeeTasks = allTasks.filter(t => t.assignedTo === 'Alex Doe');
+  const employeeTasks = allTasks.filter(t => t.assignedTo === 'Sample Employee');
 
   const toggleTaskCompletion = (taskId: string) => {
     const updatedTasks = allTasks.map(task => 
@@ -98,6 +98,12 @@ export default function DashboardPage() {
   ];
 
   const renderContent = () => {
+    const currentTasks = getInitialTasks();
+    const employeeTasks = currentTasks.filter(t => t.assignedTo === 'Sample Employee');
+    const filteredTasks = employeeTasks.filter(task =>
+      task.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     switch (activeTab) {
       case 'Dashboard':
         return (

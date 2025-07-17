@@ -76,7 +76,7 @@ export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
       deadline: values.deadline,
       priority: values.priority,
       assignedBy: "Admin User",
-      assignedTo: "Alex Doe" // Always assign to the sample employee
+      assignedTo: "Sample Employee"
     });
     toast({
       title: "Task Assigned",

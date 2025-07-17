@@ -54,13 +54,14 @@ export default function AdminDashboardPage() {
   };
 
   const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
+    const currentTasks = getInitialTasks();
     const taskToAdd: Task = {
       ...newTask,
       id: `task-${Date.now()}`,
       status: "Pending",
     };
     
-    const updatedTasks = [taskToAdd, ...tasks];
+    const updatedTasks = [taskToAdd, ...currentTasks];
     setTasks(updatedTasks);
     saveTasks(updatedTasks);
 
@@ -80,17 +81,18 @@ export default function AdminDashboardPage() {
   ];
 
   const renderContent = () => {
+    const currentTasks = getInitialTasks();
     switch (activeTab) {
       case 'Dashboard':
         return (
           <>
-            <AdminOverview employees={employees} tasks={tasks} />
+            <AdminOverview employees={employees} tasks={currentTasks} />
             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               <div className="xl:col-span-2">
                   <AdminProductivityChart />
               </div>
               <div className="space-y-8">
-                  <TaskMonitoring tasks={tasks} />
+                  <TaskMonitoring tasks={currentTasks} />
               </div>
             </div>
              <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
@@ -106,13 +108,13 @@ export default function AdminDashboardPage() {
       case 'Employees':
         return <EmployeeManagement employees={employees} />;
       case 'Tasks':
-        return <TaskMonitoring tasks={tasks} />;
+        return <TaskMonitoring tasks={currentTasks} />;
       case 'Analytics':
         return <AdminProductivityChart />;
       case 'Attendance':
         return <AttendanceTracker employees={employees} />;
       default:
-        return <AdminOverview employees={employees} tasks={tasks} />;
+        return <AdminOverview employees={employees} tasks={currentTasks} />;
     }
   };
 

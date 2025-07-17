@@ -27,7 +27,7 @@ const initialTasks: Task[] = [
     priority: 'High',
     status: 'Pending',
     assignedBy: 'Jane Smith',
-    assignedTo: 'Alex Doe',
+    assignedTo: 'Sample Employee',
   },
   {
     id: 'task-2',
@@ -36,7 +36,7 @@ const initialTasks: Task[] = [
     priority: 'High',
     status: 'Pending',
     assignedBy: 'Jane Smith',
-    assignedTo: 'Alex Doe',
+    assignedTo: 'Sample Employee',
   },
   {
     id: 'task-3',
@@ -45,7 +45,7 @@ const initialTasks: Task[] = [
     priority: 'Medium',
     status: 'Completed',
     assignedBy: 'John Doe',
-    assignedTo: 'Alex Doe',
+    assignedTo: 'Sample Employee',
   },
   {
     id: 'task-4',
@@ -54,7 +54,7 @@ const initialTasks: Task[] = [
     priority: 'Low',
     status: 'Pending',
     assignedBy: 'Jane Smith',
-    assignedTo: 'Alex Doe',
+    assignedTo: 'Sample Employee',
   },
   {
     id: 'task-5',
@@ -63,7 +63,7 @@ const initialTasks: Task[] = [
     priority: 'Medium',
     status: 'Pending',
     assignedBy: 'John Doe',
-    assignedTo: 'Alex Doe',
+    assignedTo: 'Sample Employee',
   },
     {
     id: 'task-6',
@@ -72,7 +72,7 @@ const initialTasks: Task[] = [
     priority: 'Low',
     status: 'Completed',
     assignedBy: 'Tech Lead',
-    assignedTo: 'Alex Doe',
+    assignedTo: 'Sample Employee',
   },
   {
     id: 'task-7',
@@ -81,7 +81,7 @@ const initialTasks: Task[] = [
     priority: 'High',
     status: 'Pending',
     assignedBy: 'Jane Smith',
-    assignedTo: 'Alex Doe',
+    assignedTo: 'Sample Employee',
   },
   {
     id: 'task-8',
@@ -155,7 +155,7 @@ export const saveTasks = (tasks: Task[]) => {
 
 export const allEmployees: Employee[] = [
   // The first employee is our sample employee. We change the name but keep the ID for assignments.
-  { ...mockEmployee, id: 'emp-001', name: 'Alex Doe' }, 
+  { ...mockEmployee, id: 'emp-001', name: 'Sample Employee' }, 
   {
     id: 'emp-002',
     name: 'Jane Smith',
