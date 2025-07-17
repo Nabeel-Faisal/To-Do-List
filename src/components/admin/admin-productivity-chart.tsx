@@ -28,13 +28,13 @@ export function AdminProductivityChart() {
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="name"
-              stroke="#888888"
+              stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#888888"
+              stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -50,8 +50,8 @@ export function AdminProductivityChart() {
             />
             <Legend wrapperStyle={{fontSize: "12px"}}/>
             <Bar dataKey="Sales" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Marketing" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="Engineering" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Marketing" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="Engineering" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
