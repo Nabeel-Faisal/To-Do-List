@@ -35,7 +35,7 @@ import { TaskMonitoring } from "@/components/admin/task-monitoring";
 import { AdminProductivityChart } from "@/components/admin/admin-productivity-chart";
 import { AttendanceTracker } from "@/components/admin/attendance-tracker";
 import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
-import { allTasks, allEmployees, mockAdmin } from "@/lib/mock-data";
+import { allTasks, allEmployees, mockAdmin, addNotification } from "@/lib/mock-data";
 import type { Task, Employee } from "@/lib/types";
 
 
@@ -49,15 +49,25 @@ export default function AdminDashboardPage() {
     router.push('/');
   };
 
-  const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
+  const handleAssignTask = (newTask: Omit<Task, 'id' | 'status' | 'assignedTo'>) => {
+    const assignedEmployee = allEmployees.find(e => e.name === 'Alex Doe');
+    if (!assignedEmployee) return;
+
     const taskToAdd: Task = {
       ...newTask,
       id: `task-${Date.now()}`,
       status: "Pending",
+      assignedTo: assignedEmployee.name,
     };
     
     // Add to the shared "database"
     allTasks.unshift(taskToAdd);
+    // Add a notification for the employee
+    addNotification({
+      id: `notif-${Date.now()}`,
+      message: `New task assigned: "${taskToAdd.title}"`,
+      read: false,
+    });
     // Update local state to trigger re-render
     setTasks([...allTasks]);
   };
@@ -152,7 +162,7 @@ export default function AdminDashboardPage() {
           <SidebarTrigger className="md:hidden" />
           <div className="w-full flex-1 flex items-center justify-between">
              <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
-             {activeTab === 'Tasks' && <AssignTaskDialog onAssignTask={handleAssignTask} employees={employees} />}
+             {activeTab === 'Tasks' && <AssignTaskDialog onAssignTask={handleAssignTask} />}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

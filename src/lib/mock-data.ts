@@ -1,5 +1,5 @@
 
-import type { Task, Employee } from './types';
+import type { Task, Employee, AppNotification } from './types';
 
 export const mockEmployee: Employee = {
   id: 'emp-001',
@@ -112,7 +112,6 @@ const initialTasks: Task[] = [
   }
 ];
 
-
 // Unified data source
 export let allTasks: Task[] = [...initialTasks];
 
@@ -156,3 +155,14 @@ export const allEmployees: Employee[] = [
     lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
   },
 ];
+
+// Mock notifications
+export let allNotifications: AppNotification[] = [];
+
+export function addNotification(notification: AppNotification) {
+  allNotifications.unshift(notification);
+}
+
+export function markNotificationsAsRead() {
+  allNotifications.forEach(n => n.read = true);
+}

@@ -43,7 +43,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { prioritizeTask } from "@/ai/flows/prioritize-task";
-import type { Task, TaskPriority, Employee } from "@/lib/types";
+import type { Task, TaskPriority } from "@/lib/types";
 
 const formSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
@@ -54,11 +54,10 @@ const formSchema = z.object({
 });
 
 type AssignTaskDialogProps = {
-  onAssignTask: (task: Omit<Task, 'id' | 'status'>) => void;
-  employees: Employee[];
+  onAssignTask: (task: Omit<Task, 'id' | 'status' | 'assignedTo'>) => void;
 };
 
-export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogProps) {
+export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const { toast } = useToast();
@@ -77,7 +76,6 @@ export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogPr
       deadline: values.deadline,
       priority: values.priority,
       assignedBy: "Admin User",
-      assignedTo: "Alex Doe", // Assign to the sample employee
     });
     toast({
       title: "Task Assigned",
@@ -137,7 +135,7 @@ export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogPr
         <DialogHeader>
           <DialogTitle>Assign New Task</DialogTitle>
           <DialogDescription>
-            Fill in the details below to assign a new task to an employee.
+            Fill in the details below to assign a new task to the sample employee.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

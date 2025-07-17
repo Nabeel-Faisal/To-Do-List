@@ -31,27 +31,26 @@ import { TaskOverview } from "@/components/dashboard/task-overview";
 import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
-import { mockEmployee, allTasks } from "@/lib/mock-data";
-import type { Task } from "@/lib/types";
+import { mockEmployee, allTasks, allNotifications, markNotificationsAsRead } from "@/lib/mock-data";
+import type { Task, AppNotification } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [notifications, setNotifications] = React.useState<AppNotification[]>(allNotifications);
 
-  // This effect runs when the component mounts, ensuring it gets the latest task list.
   React.useEffect(() => {
-    // This dashboard shows tasks for the sample employee ("Alex Doe")
     setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe'));
+    setNotifications(allNotifications);
   }, []);
 
   const toggleTaskCompletion = (taskId: string) => {
-     // Find the task in the master list and update its status
     const taskInAll = allTasks.find(t => t.id === taskId);
     if (taskInAll) {
       taskInAll.status = taskInAll.status === 'Completed' ? 'Pending' : 'Completed';
     }
-    // Update the local state to reflect the change immediately
     setTasks(tasks.map(task => 
       task.id === taskId 
         ? { ...task, status: task.status === 'Completed' ? 'Pending' : 'Completed' }
@@ -65,6 +64,13 @@ export default function DashboardPage() {
   
   const handleLogout = () => {
     router.push('/');
+  };
+
+  const unreadNotificationCount = notifications.filter(n => !n.read).length;
+
+  const handleNotificationClick = () => {
+    markNotificationsAsRead();
+    setNotifications([...allNotifications]);
   };
 
   return (
@@ -112,17 +118,30 @@ export default function DashboardPage() {
               </div>
             </form>
           </div>
-          <DropdownMenu>
+          <DropdownMenu onOpenChange={(open) => open && handleNotificationClick()}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-10 w-10">
+              <Button variant="outline" size="icon" className="h-10 w-10 relative">
                 <Bell className="h-5 w-5" />
+                {unreadNotificationCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full flex items-center justify-center bg-red-500 text-white">
+                    {unreadNotificationCount}
+                  </Badge>
+                )}
                 <span className="sr-only">Toggle notifications</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>No new notifications</DropdownMenuItem>
+              {notifications.length > 0 ? (
+                notifications.map(notif => (
+                  <DropdownMenuItem key={notif.id} className="text-wrap">
+                    {notif.message}
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem>No new notifications</DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
            <DropdownMenu>

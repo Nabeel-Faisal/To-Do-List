@@ -24,3 +24,9 @@ export type Employee = {
   status?: EmployeeStatus;
   lastLogin?: string;
 };
+
+export type AppNotification = {
+  id: string;
+  message: string;
+  read: boolean;
+};
