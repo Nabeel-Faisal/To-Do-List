@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Search } from "lucide-react";
+import { Bell, LogOut, Search, Settings } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,9 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { EmployeeProfile } from "@/components/dashboard/employee-profile";
 import { ThemeToggle } from "@/components/dashboard/theme-toggle";
@@ -59,40 +62,43 @@ export default function DashboardPage() {
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar collapsible="icon">
         <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <Logo className="size-8 text-primary" />
-            <span className="text-xl font-semibold">TaskFlow</span>
+          <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+            <Logo className="size-8 text-primary shrink-0" />
+            <span className="text-xl font-semibold group-data-[collapsible=icon]:hidden">TaskFlow</span>
           </div>
         </SidebarHeader>
-        <SidebarContent className="p-2">
-          <EmployeeProfile employee={mockEmployee} />
+        <SidebarContent>
+          <div className="p-4">
+            <EmployeeProfile employee={mockEmployee} />
+          </div>
         </SidebarContent>
-        <SidebarFooter className="flex-col !items-start p-2 gap-2">
-           <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-start"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            <span className="group-data-[collapsible=icon]:hidden">Logout</span>
-          </Button>
-          <ThemeToggle />
+        <SidebarFooter>
+           <div className="flex flex-col gap-2 w-full">
+            <ThemeToggle />
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-3 h-4 w-4" />
+              <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+            </Button>
+           </div>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+        <header className="flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="md:hidden" />
           <div className="w-full flex-1">
             <form>
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search tasks..."
-                  className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                  className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3 h-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -100,18 +106,22 @@ export default function DashboardPage() {
             </form>
           </div>
           <AddTaskDialog onAddTask={handleAddTask} />
-          <Button variant="outline" size="icon" className="h-8 w-8">
-            <Bell className="h-4 w-4" />
+          <Button variant="outline" size="icon" className="h-10 w-10">
+            <Bell className="h-5 w-5" />
             <span className="sr-only">Toggle notifications</span>
           </Button>
+           <Button variant="outline" size="icon" className="h-10 w-10">
+            <Settings className="h-5 w-5" />
+            <span className="sr-only">Settings</span>
+          </Button>
         </header>
-        <main className="flex-1 p-4 md:p-6 space-y-6">
+        <main className="flex-1 p-4 md:p-8 space-y-8">
           <TaskOverview tasks={tasks} />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-            <div className="lg:col-span-5">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-7">
+            <div className="lg:col-span-5 space-y-8">
               <TaskList tasks={filteredTasks} onToggleTask={toggleTaskCompletion} />
             </div>
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-8">
               <ProductivityChart tasks={tasks} />
               <UpcomingDeadlines tasks={tasks} />
             </div>
