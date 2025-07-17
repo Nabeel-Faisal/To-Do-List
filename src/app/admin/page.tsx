@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar } from "lucide-react";
+import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, History } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -84,6 +84,7 @@ export default function AdminDashboardPage() {
     { name: 'Tasks', icon: ClipboardCheck },
     { name: 'Analytics', icon: BarChart2 },
     { name: 'Attendance', icon: Calendar },
+    { name: 'Work History', icon: History },
   ];
 
   const renderContent = () => {
@@ -115,14 +116,11 @@ export default function AdminDashboardPage() {
       case 'Tasks':
         return <TaskMonitoring tasks={tasks} />;
       case 'Analytics':
-        return (
-          <>
-            <AdminProductivityChart />
-            <WorkHoursHistory />
-          </>
-        );
+        return <AdminProductivityChart />;
       case 'Attendance':
         return <AttendanceTracker employees={employees} />;
+      case 'Work History':
+        return <WorkHoursHistory />;
       default:
         return <AdminOverview employees={employees} tasks={tasks} />;
     }
