@@ -95,7 +95,7 @@ export function TaskList({ tasks, onToggleTask }: TaskListProps) {
                   <TableCell
                     className={task.status === "Completed" ? "text-muted-foreground" : ""}
                   >
-                    {format(task.deadline, "PPP")}
+                    {format(new Date(task.deadline), "PPP")}
                   </TableCell>
                    <TableCell
                     className={task.status === "Completed" ? "text-muted-foreground" : ""}

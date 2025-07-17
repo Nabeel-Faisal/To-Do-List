@@ -37,14 +37,20 @@ import type { Task } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [tasks, setTasks] = React.useState<Task[]>(allTasks.filter(t => t.assignedTo === 'Alex Doe' || t.assignedBy === 'Me'));
+  const [tasks, setTasks] = React.useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const handleAddTask = (newTask: Omit<Task, 'id' | 'assignedBy' | 'status'>) => {
+  // This effect runs when the component mounts, ensuring it gets the latest task list.
+  React.useEffect(() => {
+    setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe' || t.assignedBy === 'Me'));
+  }, []);
+
+  const handleAddTask = (newTask: Omit<Task, 'id' | 'assignedBy' | 'status' | 'assignedTo'>) => {
     const taskToAdd: Task = {
       ...newTask,
       id: `task-${Date.now()}`,
       assignedBy: "Me",
+      assignedTo: "Alex Doe", // Self-assigned tasks are assigned to Alex Doe
       status: "Pending",
     };
     allTasks.unshift(taskToAdd);
@@ -52,16 +58,17 @@ export default function DashboardPage() {
   };
 
   const toggleTaskCompletion = (taskId: string) => {
+     // Find the task in the master list and update its status
+    const taskInAll = allTasks.find(t => t.id === taskId);
+    if (taskInAll) {
+      taskInAll.status = taskInAll.status === 'Completed' ? 'Pending' : 'Completed';
+    }
+    // Update the local state to reflect the change immediately
     setTasks(tasks.map(task => 
       task.id === taskId 
         ? { ...task, status: task.status === 'Completed' ? 'Pending' : 'Completed' }
         : task
     ));
-    // Also update the master list
-    const taskInAll = allTasks.find(t => t.id === taskId);
-    if (taskInAll) {
-      taskInAll.status = taskInAll.status === 'Completed' ? 'Pending' : 'Completed';
-    }
   };
   
   const filteredTasks = tasks.filter(task =>
@@ -71,11 +78,6 @@ export default function DashboardPage() {
   const handleLogout = () => {
     router.push('/');
   };
-  
-  // This effect will re-filter tasks if the master list changes.
-  React.useEffect(() => {
-    setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe' || t.assignedBy === 'Me'));
-  }, []); // Re-run when component mounts, but we need a better way to listen to changes in allTasks
 
   return (
     <SidebarProvider>

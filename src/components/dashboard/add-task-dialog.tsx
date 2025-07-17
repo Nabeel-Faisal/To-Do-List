@@ -53,7 +53,7 @@ const formSchema = z.object({
 });
 
 type AddTaskDialogProps = {
-  onAddTask: (task: Omit<Task, 'id' | 'assignedBy' | 'status'>) => void;
+  onAddTask: (task: Omit<Task, 'id' | 'assignedBy' | 'status' | 'assignedTo'>) => void;
 };
 
 export function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {

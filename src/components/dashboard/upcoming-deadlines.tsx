@@ -13,15 +13,17 @@ type UpcomingDeadlinesProps = {
 export function UpcomingDeadlines({ tasks }: UpcomingDeadlinesProps) {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   
-  const deadlines = React.useMemo(() => tasks.map(task => task.deadline), [tasks]);
+  const deadlines = React.useMemo(() => tasks.map(task => new Date(task.deadline)), [tasks]);
 
   const tasksForSelectedDate = React.useMemo(() => {
     if (!date) return [];
     return tasks.filter(
-      (task) =>
-        task.deadline.getFullYear() === date.getFullYear() &&
-        task.deadline.getMonth() === date.getMonth() &&
-        task.deadline.getDate() === date.getDate()
+      (task) => {
+        const taskDeadline = new Date(task.deadline);
+        return taskDeadline.getFullYear() === date.getFullYear() &&
+               taskDeadline.getMonth() === date.getMonth() &&
+               taskDeadline.getDate() === date.getDate()
+      }
     );
   }, [date, tasks]);
 
