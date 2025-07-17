@@ -2,11 +2,18 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Search, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, LifeBuoy } from "lucide-react";
+import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, LifeBuoy } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarProvider,
@@ -31,17 +38,18 @@ import { mockAdmin, mockEmployees, mockAdminTasks } from "@/lib/mock-data";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = React.useState('Dashboard');
 
   const handleLogout = () => {
     router.push('/');
   };
   
   const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '#', active: true },
-    { name: 'Employees', icon: Users, href: '#' },
-    { name: 'Tasks', icon: ClipboardCheck, href: '#' },
-    { name: 'Analytics', icon: BarChart2, href: '#' },
-    { name: 'Attendance', icon: Calendar, href: '#' },
+    { name: 'Dashboard', icon: LayoutDashboard },
+    { name: 'Employees', icon: Users },
+    { name: 'Tasks', icon: ClipboardCheck },
+    { name: 'Analytics', icon: BarChart2 },
+    { name: 'Attendance', icon: Calendar },
   ];
 
   return (
@@ -57,7 +65,11 @@ export default function AdminDashboardPage() {
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton tooltip={item.name} isActive={item.active}>
+                <SidebarMenuButton 
+                  tooltip={item.name} 
+                  isActive={activeTab === item.name}
+                  onClick={() => setActiveTab(item.name)}
+                >
                   <item.icon />
                   <span>{item.name}</span>
                 </SidebarMenuButton>
@@ -86,14 +98,34 @@ export default function AdminDashboardPage() {
           <div className="w-full flex-1">
              <h1 className="text-lg font-semibold md:text-2xl">Admin Dashboard</h1>
           </div>
-          <Button variant="outline" size="icon" className="h-10 w-10">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
-           <Button variant="outline" size="icon" className="h-10 w-10">
-            <Settings className="h-5 w-5" />
-            <span className="sr-only">Settings</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-10 w-10">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Toggle notifications</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>No new notifications</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-10 w-10">
+                <Settings className="h-5 w-5" />
+                <span className="sr-only">Settings</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Settings</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Manage Users</DropdownMenuItem>
+              <DropdownMenuItem>System</DropdownMenuItem>
+              <DropdownMenuItem>Support</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
         <main className="flex-1 p-4 md:p-8 space-y-8">
           <AdminOverview employees={mockEmployees} tasks={mockAdminTasks} />

@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import type { Employee } from "@/lib/types";
 import Image from "next/image";
 
@@ -13,9 +13,18 @@ type AttendanceTrackerProps = {
 }
 
 export function AttendanceTracker({ employees }: AttendanceTrackerProps) {
+  const { toast } = useToast();
   // Mocking leave requests for demo
   const leaveRequests = employees.slice(0, 2).map(e => ({...e, reason: "Vacation"}));
   
+  const handleApprove = (name: string) => {
+    toast({ title: "Request Approved", description: `${name}'s leave request has been approved.` });
+  };
+
+  const handleDecline = (name: string) => {
+    toast({ variant: "destructive", title: "Request Declined", description: `${name}'s leave request has been declined.` });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -42,8 +51,8 @@ export function AttendanceTracker({ employees }: AttendanceTrackerProps) {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="h-7">Approve</Button>
-                    <Button variant="ghost" size="sm" className="h-7">Decline</Button>
+                    <Button variant="outline" size="sm" className="h-7" onClick={() => handleApprove(employee.name)}>Approve</Button>
+                    <Button variant="ghost" size="sm" className="h-7" onClick={() => handleDecline(employee.name)}>Decline</Button>
                   </div>
                 </li>
               ))}

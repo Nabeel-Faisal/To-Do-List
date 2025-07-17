@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { MoreHorizontal, UserCheck, UserX, UserClock } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -25,12 +25,21 @@ import { Input } from "@/components/ui/input";
 import type { Employee } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
 
 type EmployeeManagementProps = {
   employees: Employee[];
 };
 
 export function EmployeeManagement({ employees }: EmployeeManagementProps) {
+  const { toast } = useToast();
+
+  const handleActionClick = (action: string, employeeName: string) => {
+    toast({
+      title: `${action} Clicked`,
+      description: `You clicked "${action}" for ${employeeName}.`,
+    });
+  };
 
   const getStatusBadge = (status: 'Active' | 'On Leave' | 'Inactive') => {
     switch (status) {
@@ -95,9 +104,9 @@ export function EmployeeManagement({ employees }: EmployeeManagementProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>View Profile</DropdownMenuItem>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Deactivate</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleActionClick('View Profile', employee.name)}>View Profile</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleActionClick('Edit', employee.name)}>Edit</DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive" onClick={() => handleActionClick('Deactivate', employee.name)}>Deactivate</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

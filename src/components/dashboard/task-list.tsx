@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Task } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 type TaskListProps = {
   tasks: Task[];
@@ -30,6 +32,15 @@ type TaskListProps = {
 };
 
 export function TaskList({ tasks, onToggleTask }: TaskListProps) {
+  const { toast } = useToast();
+
+  const handleActionClick = (action: string, taskTitle: string) => {
+    toast({
+      title: `${action} Clicked`,
+      description: `You clicked "${action}" for task: ${taskTitle}.`,
+    });
+  };
+
   const getPriorityBadgeVariant = (priority: "High" | "Medium" | "Low") => {
     switch (priority) {
       case "High":
@@ -101,8 +112,8 @@ export function TaskList({ tasks, onToggleTask }: TaskListProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleActionClick('Edit', task.title)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleActionClick('Delete', task.title)}>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

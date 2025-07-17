@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -7,6 +8,14 @@ import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Sidebar,
   SidebarProvider,
   SidebarHeader,
@@ -14,9 +23,6 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { EmployeeProfile } from "@/components/dashboard/employee-profile";
 import { ThemeToggle } from "@/components/dashboard/theme-toggle";
@@ -106,14 +112,34 @@ export default function DashboardPage() {
             </form>
           </div>
           <AddTaskDialog onAddTask={handleAddTask} />
-          <Button variant="outline" size="icon" className="h-10 w-10">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
-           <Button variant="outline" size="icon" className="h-10 w-10">
-            <Settings className="h-5 w-5" />
-            <span className="sr-only">Settings</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-10 w-10">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Toggle notifications</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>No new notifications</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+               <Button variant="outline" size="icon" className="h-10 w-10">
+                <Settings className="h-5 w-5" />
+                <span className="sr-only">Settings</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>Preferences</DropdownMenuItem>
+              <DropdownMenuItem>Support</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
         <main className="flex-1 p-4 md:p-8 space-y-8">
           <TaskOverview tasks={tasks} />
