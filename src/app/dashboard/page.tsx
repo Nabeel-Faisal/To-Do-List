@@ -57,7 +57,7 @@ export default function DashboardPage() {
   React.useEffect(() => {
     setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe'));
     setNotifications(allNotifications);
-  }, [activeTab]);
+  }, []);
 
   const toggleTaskCompletion = (taskId: string) => {
     const taskInAll = allTasks.find(t => t.id === taskId);
@@ -103,19 +103,18 @@ export default function DashboardPage() {
         return (
           <>
             <TaskOverview tasks={tasks} />
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-7">
-              <div className="lg:col-span-5 space-y-8">
-                <TaskList tasks={filteredTasks} onToggleTask={toggleTaskCompletion} />
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                 <ProductivityChart tasks={tasks} />
               </div>
-              <div className="lg:col-span-2 space-y-8">
-                <ProductivityChart tasks={tasks} />
+               <div className="space-y-8">
                 <UpcomingDeadlines tasks={tasks} />
               </div>
             </div>
           </>
         );
       case 'My Tasks':
-        return <PlaceholderContent title="My Tasks" text="Here you'll see your assigned tasks. Task management coming soon." />;
+        return <TaskList tasks={filteredTasks} onToggleTask={toggleTaskCompletion} />;
       case 'Attendance':
         return <PlaceholderContent title="Attendance" text="Your attendance record will appear here. Tracking feature launching soon." />;
       case 'Leave Requests':
@@ -178,8 +177,20 @@ export default function DashboardPage() {
       <SidebarInset>
         <header className="flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="md:hidden" />
-          <div className="w-full flex-1">
+          <div className="w-full flex-1 flex items-center justify-between">
              <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
+              {activeTab === 'My Tasks' && (
+                <div className="relative ml-auto flex-1 md:grow-0">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search tasks..."
+                    className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              )}
           </div>
           <DropdownMenu onOpenChange={(open) => open && handleNotificationClick()}>
             <DropdownMenuTrigger asChild>
