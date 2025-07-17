@@ -27,6 +27,7 @@ const initialTasks: Task[] = [
     priority: 'High',
     status: 'Pending',
     assignedBy: 'Jane Smith',
+    assignedTo: 'Alex Doe',
   },
   {
     id: 'task-2',
@@ -35,6 +36,7 @@ const initialTasks: Task[] = [
     priority: 'High',
     status: 'Pending',
     assignedBy: 'Jane Smith',
+    assignedTo: 'Alex Doe',
   },
   {
     id: 'task-3',
@@ -43,6 +45,7 @@ const initialTasks: Task[] = [
     priority: 'Medium',
     status: 'Completed',
     assignedBy: 'John Doe',
+    assignedTo: 'Alex Doe',
   },
   {
     id: 'task-4',
@@ -51,6 +54,7 @@ const initialTasks: Task[] = [
     priority: 'Low',
     status: 'Pending',
     assignedBy: 'Jane Smith',
+    assignedTo: 'Alex Doe',
   },
   {
     id: 'task-5',
@@ -59,6 +63,7 @@ const initialTasks: Task[] = [
     priority: 'Medium',
     status: 'Pending',
     assignedBy: 'John Doe',
+    assignedTo: 'Alex Doe',
   },
     {
     id: 'task-6',
@@ -67,6 +72,7 @@ const initialTasks: Task[] = [
     priority: 'Low',
     status: 'Completed',
     assignedBy: 'Tech Lead',
+    assignedTo: 'Alex Doe',
   },
   {
     id: 'task-7',
@@ -75,6 +81,7 @@ const initialTasks: Task[] = [
     priority: 'High',
     status: 'Pending',
     assignedBy: 'Jane Smith',
+    assignedTo: 'Alex Doe',
   },
   {
     id: 'task-8',
@@ -83,6 +90,7 @@ const initialTasks: Task[] = [
     priority: 'High',
     status: 'Pending',
     assignedBy: 'Admin User',
+    assignedTo: 'Jane Smith',
   },
   {
     id: 'task-9',
@@ -91,6 +99,7 @@ const initialTasks: Task[] = [
     priority: 'Medium',
     status: 'Pending',
     assignedBy: 'Admin User',
+    assignedTo: 'Jane Smith',
   },
   {
     id: 'task-10',
@@ -98,7 +107,8 @@ const initialTasks: Task[] = [
     deadline: new Date(new Date().setDate(new Date().getDate() -1)),
     priority: 'High',
     status: 'Completed',
-    assignedBy: 'Jane Smith'
+    assignedBy: 'Jane Smith',
+    assignedTo: 'John Doe',
   }
 ];
 

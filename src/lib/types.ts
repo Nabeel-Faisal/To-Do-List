@@ -10,6 +10,7 @@ export type Task = {
   priority: TaskPriority;
   status: TaskStatus;
   assignedBy: string;
+  assignedTo?: string;
 };
 
 export type EmployeeStatus = "Active" | "On Leave" | "Inactive";

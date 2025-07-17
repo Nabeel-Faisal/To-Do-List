@@ -51,7 +51,7 @@ const formSchema = z.object({
     required_error: "A deadline is required.",
   }),
   priority: z.enum(["High", "Medium", "Low"]),
-  assignedBy: z.string({ required_error: "Please select an employee." }),
+  assignedTo: z.string({ required_error: "Please select an employee." }),
 });
 
 type AssignTaskDialogProps = {
@@ -73,10 +73,16 @@ export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogPr
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    onAssignTask(values);
+    onAssignTask({
+      title: values.title,
+      deadline: values.deadline,
+      priority: values.priority,
+      assignedBy: "Admin User",
+      assignedTo: values.assignedTo,
+    });
     toast({
       title: "Task Assigned",
-      description: `"${values.title}" has been assigned.`,
+      description: `"${values.title}" has been assigned to ${values.assignedTo}.`,
     });
     form.reset();
     setOpen(false);
@@ -152,7 +158,7 @@ export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogPr
             />
              <FormField
               control={form.control}
-              name="assignedBy"
+              name="assignedTo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Assign To</FormLabel>

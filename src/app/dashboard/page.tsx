@@ -37,7 +37,7 @@ import type { Task } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [tasks, setTasks] = React.useState<Task[]>(allTasks);
+  const [tasks, setTasks] = React.useState<Task[]>(allTasks.filter(t => t.assignedTo === 'Alex Doe' || t.assignedBy === 'Me'));
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const handleAddTask = (newTask: Omit<Task, 'id' | 'assignedBy' | 'status'>) => {
@@ -47,7 +47,8 @@ export default function DashboardPage() {
       assignedBy: "Me",
       status: "Pending",
     };
-    setTasks((prevTasks) => [taskToAdd, ...prevTasks]);
+    allTasks.unshift(taskToAdd);
+    setTasks([taskToAdd, ...tasks]);
   };
 
   const toggleTaskCompletion = (taskId: string) => {
@@ -56,6 +57,11 @@ export default function DashboardPage() {
         ? { ...task, status: task.status === 'Completed' ? 'Pending' : 'Completed' }
         : task
     ));
+    // Also update the master list
+    const taskInAll = allTasks.find(t => t.id === taskId);
+    if (taskInAll) {
+      taskInAll.status = taskInAll.status === 'Completed' ? 'Pending' : 'Completed';
+    }
   };
   
   const filteredTasks = tasks.filter(task =>
@@ -65,6 +71,11 @@ export default function DashboardPage() {
   const handleLogout = () => {
     router.push('/');
   };
+  
+  // This effect will re-filter tasks if the master list changes.
+  React.useEffect(() => {
+    setTasks(allTasks.filter(t => t.assignedTo === 'Alex Doe' || t.assignedBy === 'Me'));
+  }, []); // Re-run when component mounts, but we need a better way to listen to changes in allTasks
 
   return (
     <SidebarProvider>
