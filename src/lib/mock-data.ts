@@ -1,5 +1,5 @@
 
-import type { Task, Employee, AppNotification } from './types';
+import type { Task, Employee, AppNotification, WorkSession } from './types';
 
 export const mockEmployee: Employee = {
   id: 'emp-001',
@@ -118,7 +118,7 @@ const TASKS_STORAGE_KEY = 'taskflow_tasks';
 
 export const getInitialTasks = (): Task[] => {
   if (typeof window === 'undefined') {
-    return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
+    return [];
   }
   try {
     const storedTasks = window.localStorage.getItem(TASKS_STORAGE_KEY);
@@ -128,12 +128,13 @@ export const getInitialTasks = (): Task[] => {
         deadline: new Date(task.deadline),
       }));
     } else {
-       window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialTasks));
-       return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
+       const initialData = initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
+       window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialData.map(t => ({...t, deadline: t.deadline.toISOString()}))));
+       return initialData;
     }
   } catch (error) {
     console.error("Failed to parse tasks from localStorage", error);
-    return initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
+    return [];
   }
 };
 
@@ -230,3 +231,49 @@ export const allEmployees: Employee[] = [
     lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
   },
 ];
+
+
+// --- localStorage Persistence for Work Sessions ---
+const WORK_SESSIONS_STORAGE_KEY = 'taskflow_work_sessions';
+const TIMER_STATE_STORAGE_KEY = 'taskflow_timer_state';
+
+export const getWorkSessions = (): WorkSession[] => {
+    if (typeof window === 'undefined') return [];
+    try {
+        const stored = window.localStorage.getItem(WORK_SESSIONS_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error("Failed to get work sessions from localStorage", error);
+        return [];
+    }
+};
+
+export const saveWorkSessions = (sessions: WorkSession[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+        window.localStorage.setItem(WORK_SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+    } catch (error) {
+        console.error("Failed to save work sessions to localStorage", error);
+    }
+};
+
+export const getTimerState = (): { running: boolean; startTime: string | null; sessionId: string | null } => {
+    if (typeof window === 'undefined') return { running: false, startTime: null, sessionId: null };
+    try {
+        const stored = window.localStorage.getItem(TIMER_STATE_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : { running: false, startTime: null, sessionId: null };
+    } catch (error) {
+        console.error("Failed to get timer state from localStorage", error);
+        return { running: false, startTime: null, sessionId: null };
+    }
+};
+
+export const saveTimerState = (state: { running: boolean; startTime: string | null; sessionId: string | null }) => {
+    if (typeof window === 'undefined') return;
+    try {
+        window.localStorage.setItem(TIMER_STATE_STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error("Failed to save timer state to localStorage", error);
+    }
+};
+// --- End of Work Session Persistence ---

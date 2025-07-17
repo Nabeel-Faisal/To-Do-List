@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, PlusCircle } from "lucide-react";
+import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ import { TaskMonitoring } from "@/components/admin/task-monitoring";
 import { AdminProductivityChart } from "@/components/admin/admin-productivity-chart";
 import { AttendanceTracker } from "@/components/admin/attendance-tracker";
 import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
+import { WorkHoursHistory } from "@/components/admin/work-hours-history";
 import { getInitialTasks, saveTasks, allEmployees, mockAdmin, addNotification, getNotifications } from "@/lib/mock-data";
 import type { Task, Employee, AppNotification } from "@/lib/types";
 
@@ -114,7 +115,12 @@ export default function AdminDashboardPage() {
       case 'Tasks':
         return <TaskMonitoring tasks={tasks} />;
       case 'Analytics':
-        return <AdminProductivityChart />;
+        return (
+          <>
+            <AdminProductivityChart />
+            <WorkHoursHistory />
+          </>
+        );
       case 'Attendance':
         return <AttendanceTracker employees={employees} />;
       default:

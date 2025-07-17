@@ -30,3 +30,12 @@ export type AppNotification = {
   message: string;
   read: boolean;
 };
+
+export type WorkSession = {
+    id: string;
+    employeeId: string;
+    employeeName: string;
+    startTime: string;
+    endTime: string | null;
+    date: string;
+};

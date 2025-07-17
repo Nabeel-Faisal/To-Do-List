@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Search, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, MessageSquare, HelpCircle, Plane } from "lucide-react";
+import { Bell, LogOut, Search, Settings, LayoutDashboard, ClipboardCheck, BarChart2, Calendar, MessageSquare, HelpCircle, Plane } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import { TaskOverview } from "@/components/dashboard/task-overview";
 import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
+import { WorkHoursTimer } from "@/components/dashboard/work-hours-timer";
 import { mockEmployee, getInitialTasks, saveTasks, getNotifications, markNotificationsAsRead } from "@/lib/mock-data";
 import type { Task, AppNotification } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -55,7 +56,6 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = React.useState('Dashboard');
 
   React.useEffect(() => {
-    // This now runs only on the client, preventing hydration errors
     setAllTasks(getInitialTasks());
     setNotifications(getNotifications());
   }, []);
@@ -109,6 +109,7 @@ export default function DashboardPage() {
                  <ProductivityChart tasks={employeeTasks} />
               </div>
                <div className="space-y-8">
+                <WorkHoursTimer />
                 <UpcomingDeadlines tasks={employeeTasks} />
               </div>
             </div>
