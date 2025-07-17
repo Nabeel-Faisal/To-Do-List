@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState('Dashboard');
   const [tasks, setTasks] = React.useState<Task[]>([]);
-  const [employees, setEmployees] = React.useState<Employee[]>(allEmployees);
+  const [employees, setEmployees] = React.useState<Employee[]>([]);
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
 
   React.useEffect(() => {
@@ -68,13 +68,13 @@ export default function AdminDashboardPage() {
     setTasks(updatedTasks);
     saveTasks(updatedTasks);
 
-    addNotification({
+    const newNotification: AppNotification = {
       id: `notif-${Date.now()}`,
       message: `New task assigned: "${taskToAdd.title}"`,
       read: false,
-    });
-    // To see notification update in real-time on this dashboard
-    setNotifications(getNotifications());
+    };
+    addNotification(newNotification);
+    setNotifications([newNotification, ...notifications]);
   };
   
   const menuItems = [
