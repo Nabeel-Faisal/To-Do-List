@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTimerState, saveTimerState, getWorkSessions, saveWorkSessions, mockEmployee } from "@/lib/mock-data";
 import type { WorkSession } from "@/lib/types";
 import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 export function WorkHoursTimer() {
   const [timerState, setTimerState] = React.useState({ running: false, startTime: null as string | null, sessionId: null as string | null });
@@ -87,21 +88,32 @@ export function WorkHoursTimer() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Work Timer</CardTitle>
+      <CardHeader>
+        <CardTitle className="text-base font-medium">Work Timer</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{elapsedTime}</div>
-        <div className="mt-4 flex gap-2">
-          {!timerState.running ? (
-            <Button onClick={handleStartTimer} size="sm" className="gap-2">
-              <Play className="h-4 w-4" /> Start Timer
-            </Button>
-          ) : (
-            <Button onClick={handleStopTimer} variant="destructive" size="sm" className="gap-2">
-              <Square className="h-4 w-4" /> Stop Timer
-            </Button>
-          )}
+        <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="text-4xl font-bold tracking-tighter tabular-nums text-center p-4 rounded-lg bg-muted w-full">
+                {elapsedTime}
+            </div>
+            <div className="flex items-center text-sm text-muted-foreground">
+                <span className={cn(
+                    "h-2 w-2 rounded-full mr-2",
+                    timerState.running ? "bg-green-500 animate-pulse" : "bg-gray-400"
+                )}></span>
+                <span>{timerState.running ? "Timer is active" : "Timer is stopped"}</span>
+            </div>
+            <div className="w-full">
+                {!timerState.running ? (
+                    <Button onClick={handleStartTimer} size="lg" className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white">
+                        <Play className="h-5 w-5" /> Start Timer
+                    </Button>
+                ) : (
+                    <Button onClick={handleStopTimer} variant="destructive" size="lg" className="w-full gap-2">
+                        <Square className="h-5 w-5" /> Stop Timer
+                    </Button>
+                )}
+            </div>
         </div>
       </CardContent>
     </Card>
