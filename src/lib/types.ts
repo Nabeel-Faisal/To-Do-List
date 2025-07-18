@@ -31,6 +31,8 @@ export type AppNotification = {
   read: boolean;
 };
 
+export type WorkSessionStatus = 'Active' | 'Paused' | 'Completed';
+
 export type WorkSession = {
     id: string;
     employeeId: string;
@@ -38,4 +40,6 @@ export type WorkSession = {
     startTime: string;
     endTime: string | null;
     date: string;
+    totalDuration: number; // in milliseconds
+    status: WorkSessionStatus; 
 };

@@ -237,6 +237,13 @@ export const allEmployees: Employee[] = [
 const WORK_SESSIONS_STORAGE_KEY = 'taskflow_work_sessions';
 const TIMER_STATE_STORAGE_KEY = 'taskflow_timer_state';
 
+type TimerState = {
+    status: 'stopped' | 'running' | 'paused';
+    startTime: string | null; // The time the current interval started
+    accumulatedTime: number; // Time in ms accumulated before the current interval
+    sessionId: string | null;
+}
+
 export const getWorkSessions = (): WorkSession[] => {
     if (typeof window === 'undefined') return [];
     try {
@@ -257,18 +264,18 @@ export const saveWorkSessions = (sessions: WorkSession[]) => {
     }
 };
 
-export const getTimerState = (): { running: boolean; startTime: string | null; sessionId: string | null } => {
-    if (typeof window === 'undefined') return { running: false, startTime: null, sessionId: null };
+export const getTimerState = (): TimerState => {
+    if (typeof window === 'undefined') return { status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null };
     try {
         const stored = window.localStorage.getItem(TIMER_STATE_STORAGE_KEY);
-        return stored ? JSON.parse(stored) : { running: false, startTime: null, sessionId: null };
+        return stored ? JSON.parse(stored) : { status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null };
     } catch (error) {
         console.error("Failed to get timer state from localStorage", error);
-        return { running: false, startTime: null, sessionId: null };
+        return { status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null };
     }
 };
 
-export const saveTimerState = (state: { running: boolean; startTime: string | null; sessionId: string | null }) => {
+export const saveTimerState = (state: TimerState) => {
     if (typeof window === 'undefined') return;
     try {
         window.localStorage.setItem(TIMER_STATE_STORAGE_KEY, JSON.stringify(state));

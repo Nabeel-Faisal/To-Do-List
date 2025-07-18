@@ -24,15 +24,37 @@ export function WorkHoursHistory() {
     setSessions(getWorkSessions().sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()));
   }, []);
 
-  const calculateDuration = (startTime: string, endTime: string | null) => {
-    if (!endTime) return "In Progress";
-    return formatDistanceStrict(new Date(startTime), new Date(endTime));
+ const calculateDuration = (durationMs: number) => {
+    if (durationMs === 0) return "0s";
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    let result = '';
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0) result += `${minutes}m `;
+    if (seconds > 0 || result === '') result += `${seconds}s`;
+    
+    return result.trim();
   };
   
   const formatTime = (dateString: string | null) => {
     if(!dateString) return '-';
     return format(new Date(dateString), 'hh:mm:ss a');
   };
+  
+  const getStatusBadge = (status: 'Active' | 'Paused' | 'Completed') => {
+    switch (status) {
+      case 'Active':
+        return <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Active</Badge>;
+      case 'Paused':
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Paused</Badge>;
+      case 'Completed':
+         return <Badge variant="outline">Completed</Badge>;
+    }
+  };
+
 
   return (
     <Card>
@@ -46,9 +68,10 @@ export function WorkHoursHistory() {
             <TableRow>
               <TableHead>Employee</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Login Time</TableHead>
-              <TableHead>Logout Time</TableHead>
+              <TableHead>Start Time</TableHead>
+              <TableHead>End Time</TableHead>
               <TableHead>Total Duration</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -59,20 +82,13 @@ export function WorkHoursHistory() {
                   <TableCell>{format(new Date(session.date), 'PPP')}</TableCell>
                   <TableCell>{formatTime(session.startTime)}</TableCell>
                   <TableCell>{formatTime(session.endTime)}</TableCell>
-                  <TableCell>
-                    {session.endTime ? (
-                      calculateDuration(session.startTime, session.endTime)
-                    ) : (
-                      <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                        Active
-                      </Badge>
-                    )}
-                  </TableCell>
+                  <TableCell>{calculateDuration(session.totalDuration)}</TableCell>
+                  <TableCell>{getStatusBadge(session.status)}</TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={6} className="h-24 text-center">
                   No work sessions recorded yet.
                 </TableCell>
               </TableRow>

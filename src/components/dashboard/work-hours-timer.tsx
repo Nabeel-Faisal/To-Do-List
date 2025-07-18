@@ -2,59 +2,73 @@
 "use client";
 
 import * as React from "react";
-import { Play, Square } from "lucide-react";
+import { Play, Square, Pause, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTimerState, saveTimerState, getWorkSessions, saveWorkSessions, mockEmployee } from "@/lib/mock-data";
 import type { WorkSession } from "@/lib/types";
-import { format } from 'date-fns';
+import { format as formatDate } from 'date-fns';
 import { cn } from "@/lib/utils";
 
+const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
 export function WorkHoursTimer() {
-  const [timerState, setTimerState] = React.useState({ running: false, startTime: null as string | null, sessionId: null as string | null });
-  const [elapsedTime, setElapsedTime] = React.useState("00:00:00");
+  const [timerState, setTimerState] = React.useState(getTimerState());
+  const [elapsedTime, setElapsedTime] = React.useState(formatTime(0));
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
+    // Initialize timer state from localStorage on mount
     const savedState = getTimerState();
-    if (savedState.running && savedState.startTime) {
-      setTimerState(savedState);
+    setTimerState(savedState);
+    if (savedState.status === 'running' || savedState.status === 'paused') {
+      updateDisplay(savedState.accumulatedTime, savedState.startTime, savedState.status);
     }
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
   }, []);
+  
+  const updateDisplay = (accumulated: number, start: string | null, status: 'running' | 'paused' | 'stopped') => {
+      if (status === 'running' && start) {
+          const now = new Date().getTime();
+          const startMs = new Date(start).getTime();
+          setElapsedTime(formatTime(accumulated + (now - startMs)));
+      } else {
+          setElapsedTime(formatTime(accumulated));
+      }
+  };
 
   React.useEffect(() => {
-    if (timerState.running && timerState.startTime) {
+    if (timerState.status === 'running') {
       intervalRef.current = setInterval(() => {
-        const start = new Date(timerState.startTime!).getTime();
-        const now = new Date().getTime();
-        const difference = now - start;
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-        setElapsedTime(
-          `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-        );
+        updateDisplay(timerState.accumulatedTime, timerState.startTime, 'running');
       }, 1000);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      setElapsedTime("00:00:00");
+      updateDisplay(timerState.accumulatedTime, timerState.startTime, timerState.status);
     }
 
     saveTimerState(timerState);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [timerState]);
+
+  const updateSession = (updates: Partial<WorkSession>) => {
+    if (!timerState.sessionId) return;
+    const sessions = getWorkSessions();
+    const updatedSessions = sessions.map(session =>
+      session.id === timerState.sessionId ? { ...session, ...updates } : session
+    );
+    saveWorkSessions(updatedSessions);
+  };
 
   const handleStartTimer = () => {
     const now = new Date();
@@ -65,26 +79,60 @@ export function WorkHoursTimer() {
       employeeName: mockEmployee.name,
       startTime: now.toISOString(),
       endTime: null,
-      date: format(now, 'yyyy-MM-dd'),
+      date: formatDate(now, 'yyyy-MM-dd'),
+      totalDuration: 0,
+      status: 'Active',
     };
 
-    const sessions = getWorkSessions();
-    saveWorkSessions([...sessions, newSession]);
-    setTimerState({ running: true, startTime: now.toISOString(), sessionId: newSessionId });
+    saveWorkSessions([...getWorkSessions(), newSession]);
+    setTimerState({ status: 'running', startTime: now.toISOString(), accumulatedTime: 0, sessionId: newSessionId });
+  };
+
+  const handlePauseTimer = () => {
+    if (timerState.status !== 'running' || !timerState.startTime) return;
+    
+    const now = new Date().getTime();
+    const startMs = new Date(timerState.startTime).getTime();
+    const newAccumulatedTime = timerState.accumulatedTime + (now - startMs);
+
+    updateSession({ status: 'Paused', totalDuration: newAccumulatedTime });
+    setTimerState(prev => ({ ...prev, status: 'paused', accumulatedTime: newAccumulatedTime, startTime: null }));
+  };
+
+  const handleResumeTimer = () => {
+    if (timerState.status !== 'paused') return;
+
+    const now = new Date().toISOString();
+    updateSession({ status: 'Active' });
+    setTimerState(prev => ({ ...prev, status: 'running', startTime: now }));
   };
 
   const handleStopTimer = () => {
-    if (!timerState.sessionId) return;
+    if (timerState.status === 'stopped' || !timerState.sessionId) return;
     
-    const sessions = getWorkSessions();
-    const updatedSessions = sessions.map(session =>
-      session.id === timerState.sessionId
-        ? { ...session, endTime: new Date().toISOString() }
-        : session
-    );
-    saveWorkSessions(updatedSessions);
-    setTimerState({ running: false, startTime: null, sessionId: null });
+    const now = new Date();
+    let finalAccumulatedTime = timerState.accumulatedTime;
+    
+    if (timerState.status === 'running' && timerState.startTime) {
+      finalAccumulatedTime += (now.getTime() - new Date(timerState.startTime).getTime());
+    }
+
+    updateSession({ status: 'Completed', endTime: now.toISOString(), totalDuration: finalAccumulatedTime });
+    setTimerState({ status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null });
+    setElapsedTime(formatTime(0)); // Reset display
   };
+  
+  const statusText = {
+      running: "Timer is active",
+      paused: "Timer is paused",
+      stopped: "Timer is stopped"
+  }[timerState.status];
+  
+  const statusColor = {
+      running: "bg-green-500 animate-pulse",
+      paused: "bg-yellow-500",
+      stopped: "bg-gray-400"
+  }[timerState.status];
 
   return (
     <Card>
@@ -97,21 +145,29 @@ export function WorkHoursTimer() {
                 {elapsedTime}
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
-                <span className={cn(
-                    "h-2 w-2 rounded-full mr-2",
-                    timerState.running ? "bg-green-500 animate-pulse" : "bg-gray-400"
-                )}></span>
-                <span>{timerState.running ? "Timer is active" : "Timer is stopped"}</span>
+                <span className={cn("h-2 w-2 rounded-full mr-2", statusColor)}></span>
+                <span>{statusText}</span>
             </div>
-            <div className="w-full">
-                {!timerState.running ? (
-                    <Button onClick={handleStartTimer} size="lg" className="w-full gap-2">
+            <div className="grid grid-cols-3 gap-2 w-full">
+                {timerState.status === 'stopped' ? (
+                     <Button onClick={handleStartTimer} size="lg" className="w-full gap-2 col-span-3">
                         <Play className="h-5 w-5" /> Start Timer
                     </Button>
                 ) : (
-                    <Button onClick={handleStopTimer} variant="destructive" size="lg" className="w-full gap-2">
-                        <Square className="h-5 w-5" /> Stop Timer
-                    </Button>
+                    <>
+                     {timerState.status === 'running' ? (
+                          <Button onClick={handlePauseTimer} variant="outline" size="lg" className="w-full gap-2">
+                            <Pause className="h-5 w-5" /> Pause
+                          </Button>
+                        ) : (
+                          <Button onClick={handleResumeTimer} variant="outline" size="lg" className="w-full gap-2">
+                            <SkipForward className="h-5 w-5" /> Resume
+                          </Button>
+                        )}
+                        <Button onClick={handleStopTimer} variant="destructive" size="lg" className="w-full gap-2 col-span-2">
+                            <Square className="h-5 w-5" /> Stop Timer
+                        </Button>
+                    </>
                 )}
             </div>
         </div>
