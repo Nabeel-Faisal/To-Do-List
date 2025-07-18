@@ -105,7 +105,7 @@ export function WorkHoursTimer() {
             </div>
             <div className="w-full">
                 {!timerState.running ? (
-                    <Button onClick={handleStartTimer} size="lg" className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white">
+                    <Button onClick={handleStartTimer} size="lg" className="w-full gap-2">
                         <Play className="h-5 w-5" /> Start Timer
                     </Button>
                 ) : (
