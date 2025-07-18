@@ -28,9 +28,11 @@ export function WorkHoursTimer() {
 
   React.useEffect(() => {
     const savedState = getTimerState();
-    setTimerState(savedState);
-    if (savedState.status === 'running' || savedState.status === 'paused') {
-      updateDisplay(savedState.accumulatedTime, savedState.startTime, savedState.status);
+    if (savedState) {
+        setTimerState(savedState);
+        if (savedState.status === 'running' || savedState.status === 'paused') {
+            updateDisplay(savedState.accumulatedTime, savedState.startTime, savedState.status);
+        }
     }
   }, []);
   
@@ -39,7 +41,9 @@ export function WorkHoursTimer() {
       if (status === 'running' && start) {
           const now = new Date().getTime();
           const startMs = new Date(start).getTime();
-          currentElapsedTime += (now - startMs);
+          if (!isNaN(startMs)) {
+            currentElapsedTime += (now - startMs);
+          }
       }
       setElapsedTime(formatTime(currentElapsedTime));
   };
