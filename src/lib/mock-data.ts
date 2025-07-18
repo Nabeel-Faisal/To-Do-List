@@ -239,7 +239,7 @@ export const allEmployees: Employee[] = [
 const WORK_SESSIONS_STORAGE_KEY = 'taskflow_work_sessions';
 const TIMER_STATE_STORAGE_KEY = 'taskflow_timer_state';
 
-type TimerState = {
+export type TimerState = {
     status: 'stopped' | 'running' | 'paused';
     startTime: string | null; // The time the current interval started
     accumulatedTime: number; // Time in ms accumulated before the current interval

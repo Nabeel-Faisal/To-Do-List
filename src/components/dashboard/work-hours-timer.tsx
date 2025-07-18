@@ -5,7 +5,7 @@ import * as React from "react";
 import { Play, Square, Pause, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTimerState, saveTimerState, getWorkSessions, saveWorkSessions, mockEmployee } from "@/lib/mock-data";
+import { getTimerState, saveTimerState, getWorkSessions, saveWorkSessions, mockEmployee, type TimerState } from "@/lib/mock-data";
 import type { WorkSession } from "@/lib/types";
 import { format as formatDate } from 'date-fns';
 import { cn } from "@/lib/utils";
@@ -21,16 +21,18 @@ const formatTime = (ms: number) => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
+const initialTimerState: TimerState = { status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null };
+
 export function WorkHoursTimer() {
-  const [timerState, setTimerState] = React.useState({ status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null });
+  const [timerState, setTimerState] = React.useState<TimerState>(initialTimerState);
   const [elapsedTime, setElapsedTime] = React.useState(formatTime(0));
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
+    // Load state from localStorage only on the client
     const savedState = getTimerState();
     if (savedState) {
         setTimerState(savedState);
-        // Recalculate display time on initial load
         let currentElapsedTime = savedState.accumulatedTime;
         if (savedState.status === 'running' && savedState.startTime) {
              const now = new Date().getTime();
