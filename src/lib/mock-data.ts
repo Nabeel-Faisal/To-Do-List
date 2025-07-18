@@ -122,16 +122,18 @@ export const getInitialTasks = (): Task[] => {
   }
   try {
     const storedTasks = window.localStorage.getItem(TASKS_STORAGE_KEY);
+    // If we have tasks in storage, parse and return them.
     if (storedTasks) {
       return JSON.parse(storedTasks).map((task: any) => ({
         ...task,
         deadline: new Date(task.deadline),
       }));
-    } else {
-       const initialData = initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
-       window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialData.map(t => ({...t, deadline: t.deadline.toISOString()}))));
-       return initialData;
-    }
+    } 
+    // THIS IS THE CRITICAL CHANGE: Only set initial tasks if storage is empty.
+    const initialData = initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
+    window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialData.map(t => ({...t, deadline: t.deadline.toISOString()}))));
+    return initialData;
+    
   } catch (error) {
     console.error("Failed to parse tasks from localStorage", error);
     return [];

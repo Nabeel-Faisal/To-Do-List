@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = React.useState('Dashboard');
 
   React.useEffect(() => {
+    // Ensure this runs only on the client
     setAllTasks(getInitialTasks());
     setNotifications(getNotifications());
   }, []);

@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, History } from "lucide-react";
+import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, History, PlusCircle } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +48,7 @@ export default function AdminDashboardPage() {
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
 
   React.useEffect(() => {
+    // Ensure this runs only on the client
     setTasks(getInitialTasks());
     setEmployees(allEmployees);
     setNotifications(getNotifications());
@@ -58,6 +59,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
+    // We get the latest tasks from storage to avoid state inconsistencies
     const currentTasks = getInitialTasks();
     const taskToAdd: Task = {
       ...newTask,
@@ -171,6 +173,11 @@ export default function AdminDashboardPage() {
           <SidebarTrigger className="md:hidden" />
           <div className="w-full flex-1 flex items-center justify-between">
              <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
+             {activeTab === 'Tasks' && (
+                <div className="flex items-center justify-end">
+                    <AssignTaskDialog onAssignTask={handleAssignTask} />
+                </div>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <DropdownMenu>
@@ -210,11 +217,6 @@ export default function AdminDashboardPage() {
           </div>
         </header>
         <main className="flex-1 p-4 md:p-8 space-y-8">
-            {activeTab === 'Tasks' && (
-                <div className="flex items-center justify-end">
-                    <AssignTaskDialog onAssignTask={handleAssignTask} />
-                </div>
-            )}
           {renderContent()}
         </main>
       </SidebarInset>
