@@ -30,9 +30,16 @@ export function WorkHoursTimer() {
     const savedState = getTimerState();
     if (savedState) {
         setTimerState(savedState);
-        if (savedState.status === 'running' || savedState.status === 'paused') {
-            updateDisplay(savedState.accumulatedTime, savedState.startTime, savedState.status);
+        // Recalculate display time on initial load
+        let currentElapsedTime = savedState.accumulatedTime;
+        if (savedState.status === 'running' && savedState.startTime) {
+             const now = new Date().getTime();
+             const startMs = new Date(savedState.startTime).getTime();
+             if (!isNaN(startMs)) {
+                currentElapsedTime += (now - startMs);
+             }
         }
+        setElapsedTime(formatTime(currentElapsedTime));
     }
   }, []);
   

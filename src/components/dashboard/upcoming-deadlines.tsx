@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -11,8 +12,13 @@ type UpcomingDeadlinesProps = {
 };
 
 export function UpcomingDeadlines({ tasks }: UpcomingDeadlinesProps) {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [date, setDate] = React.useState<Date | undefined>(undefined);
   
+  React.useEffect(() => {
+    // Set initial date only on the client to avoid hydration mismatch
+    setDate(new Date());
+  }, [])
+
   const deadlines = React.useMemo(() => tasks.map(task => new Date(task.deadline)), [tasks]);
 
   const tasksForSelectedDate = React.useMemo(() => {
@@ -48,6 +54,7 @@ export function UpcomingDeadlines({ tasks }: UpcomingDeadlinesProps) {
           classNames={{
             day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90",
           }}
+          disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
         />
         <div className="w-full mt-4 space-y-2">
             <h4 className="font-medium">
