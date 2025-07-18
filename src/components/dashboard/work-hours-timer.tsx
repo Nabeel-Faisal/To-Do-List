@@ -11,6 +11,9 @@ import { format as formatDate } from 'date-fns';
 import { cn } from "@/lib/utils";
 
 const formatTime = (ms: number) => {
+    if (isNaN(ms) || ms < 0) {
+        return "00:00:00";
+    }
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -19,12 +22,11 @@ const formatTime = (ms: number) => {
 };
 
 export function WorkHoursTimer() {
-  const [timerState, setTimerState] = React.useState(getTimerState());
+  const [timerState, setTimerState] = React.useState({ status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null });
   const [elapsedTime, setElapsedTime] = React.useState(formatTime(0));
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
-    // Initialize timer state from localStorage on mount
     const savedState = getTimerState();
     setTimerState(savedState);
     if (savedState.status === 'running' || savedState.status === 'paused') {
@@ -33,16 +35,17 @@ export function WorkHoursTimer() {
   }, []);
   
   const updateDisplay = (accumulated: number, start: string | null, status: 'running' | 'paused' | 'stopped') => {
+      let currentElapsedTime = accumulated;
       if (status === 'running' && start) {
           const now = new Date().getTime();
           const startMs = new Date(start).getTime();
-          setElapsedTime(formatTime(accumulated + (now - startMs)));
-      } else {
-          setElapsedTime(formatTime(accumulated));
+          currentElapsedTime += (now - startMs);
       }
+      setElapsedTime(formatTime(currentElapsedTime));
   };
 
   React.useEffect(() => {
+    saveTimerState(timerState);
     if (timerState.status === 'running') {
       intervalRef.current = setInterval(() => {
         updateDisplay(timerState.accumulatedTime, timerState.startTime, 'running');
@@ -53,8 +56,6 @@ export function WorkHoursTimer() {
       }
       updateDisplay(timerState.accumulatedTime, timerState.startTime, timerState.status);
     }
-
-    saveTimerState(timerState);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
