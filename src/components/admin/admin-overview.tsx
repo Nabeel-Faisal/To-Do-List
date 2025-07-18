@@ -13,8 +13,8 @@ export function AdminOverview({ employees, tasks }: AdminOverviewProps) {
   const completedToday = tasks.filter(task => task.status === 'Completed' && new Date(task.deadline).toDateString() === new Date().toDateString()).length;
   const pendingTasks = tasks.filter(task => task.status === 'Pending').length;
   const departments = new Set(employees.map(e => e.department)).size;
-  // Mocked data for attendance
-  const attendanceToday = Math.floor(totalEmployees * 0.9);
+  // Mocked data for attendance - made deterministic to prevent hydration errors
+  const attendanceToday = Math.floor(totalEmployees * 0.9) || 0;
 
   const overviewItems = [
     { title: "Total Employees", value: totalEmployees, icon: Users, color: "text-blue-500" },

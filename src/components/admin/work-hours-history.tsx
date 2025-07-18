@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { format, formatDistanceStrict } from 'date-fns';
+import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
