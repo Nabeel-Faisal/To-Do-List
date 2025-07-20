@@ -51,12 +51,14 @@ import type { Task, Employee, AppNotification, WorkSession } from "@/lib/types";
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState('Dashboard');
-  const [tasks, setTasks] = React.useState<Task[]>(getTasks());
+  const [tasks, setTasks] = React.useState<Task[]>([]);
   const [employees] = React.useState<Employee[]>(allEmployees);
-  const [notifications, setNotifications] = React.useState<AppNotification[]>(getNotifications());
-  const [workSessions, setWorkSessions] = React.useState<WorkSession[]>(getWorkSessions());
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
+  const [workSessions, setWorkSessions] = React.useState<WorkSession[]>([]);
+  const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
+    setIsClient(true);
     const handleUpdate = () => {
       setTasks(getTasks());
       setNotifications(getNotifications());
@@ -86,6 +88,9 @@ export default function AdminDashboardPage() {
   ];
 
   const renderContent = () => {
+    if (!isClient) {
+        return <div className="p-8">Loading...</div>;
+    }
     switch (activeTab) {
       case 'Dashboard':
         return (

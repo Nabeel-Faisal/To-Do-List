@@ -87,17 +87,16 @@ export default function DashboardPage() {
   const [timerState, setTimerState] = React.useState<TimerState>(initialTimerState);
   const [elapsedTime, setElapsedTime] = React.useState(formatTime(0));
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
+    setIsClient(true);
     const handleUpdate = () => {
       setAllTasks(getTasks());
       setNotifications(getNotifications());
     };
     const unsubscribe = subscribe(handleUpdate);
     
-    setAllTasks(getTasks());
-    setNotifications(getNotifications());
-
     return () => unsubscribe();
   }, []);
 
@@ -215,6 +214,9 @@ export default function DashboardPage() {
   ];
 
   const renderContent = () => {
+     if (!isClient) {
+        return <div className="p-8">Loading...</div>;
+    }
     switch (activeTab) {
       case 'Dashboard':
         return (

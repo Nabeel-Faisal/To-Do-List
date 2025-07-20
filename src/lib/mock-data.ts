@@ -11,8 +11,71 @@ let state = {
   workSessions: [] as WorkSession[],
 };
 
+// Function to safely get data from localStorage only on the client side
+const loadStateFromLocalStorage = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    const serializedTasks = localStorage.getItem('tasks');
+    const serializedWorkSessions = localStorage.getItem('workSessions');
+    const serializedNotifications = localStorage.getItem('notifications');
+
+    if (serializedTasks) {
+      const parsedTasks = JSON.parse(serializedTasks);
+      state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
+    } else {
+       state.tasks = initialTasksData.map(task => ({
+        ...task,
+        deadline: new Date(task.deadline),
+      }));
+    }
+
+    if (serializedWorkSessions) {
+      state.workSessions = JSON.parse(serializedWorkSessions);
+    }
+
+    if (serializedNotifications) {
+        state.notifications = JSON.parse(serializedNotifications);
+    }
+    
+  } catch (e) {
+    console.error("Failed to load state from localStorage", e);
+    // If loading fails, initialize with default data
+    state.tasks = initialTasksData.map(task => ({
+      ...task,
+      deadline: new Date(task.deadline),
+    }));
+  }
+};
+
+// Function to safely save data to localStorage
+const saveTasks = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('tasks', JSON.stringify(state.tasks));
+  }
+};
+
+const saveWorkSessions = () => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('workSessions', JSON.stringify(state.workSessions));
+    }
+};
+
+const saveNotifications = () => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('notifications', JSON.stringify(state.notifications));
+    }
+};
+
+// Load initial state
+loadStateFromLocalStorage();
+
+
 export function subscribe(listener: () => void) {
   listeners.push(listener);
+  // Immediately call listener to provide initial data
+  listener(); 
   return function unsubscribe() {
     listeners = listeners.filter(l => l !== listener);
   };
@@ -177,13 +240,6 @@ const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [
   }
 ];
 
-// Initialize state
-state.tasks = initialTasksData.map(task => ({
-  ...task,
-  deadline: new Date(task.deadline),
-}));
-
-
 export const getTasks = (): Task[] => {
   return state.tasks;
 };
@@ -195,6 +251,7 @@ export const addTask = (newTaskData: Omit<Task, 'id' | 'status'>) => {
     status: "Pending",
   };
   state.tasks = [newTask, ...state.tasks];
+  saveTasks();
   addNotification({
     id: `notif-${Date.now()}`,
     message: `New task assigned: "${newTask.title}"`,
@@ -207,6 +264,7 @@ export const updateTask = (taskId: string, updates: Partial<Task>) => {
   state.tasks = state.tasks.map(task =>
     task.id === taskId ? { ...task, ...updates } : task
   );
+  saveTasks();
   notify();
 };
 
@@ -219,11 +277,12 @@ export const getNotifications = (): AppNotification[] => {
 
 export const addNotification = (notification: AppNotification) => {
   state.notifications = [notification, ...state.notifications];
-  // No need to call notify() here as it's called by the function that creates the notification
+  saveNotifications();
 };
 
 export const readAllNotifications = () => {
   state.notifications = state.notifications.map(n => ({ ...n, read: true }));
+  saveNotifications();
   notify();
 };
 // #endregion
@@ -235,6 +294,7 @@ export const getWorkSessions = (): WorkSession[] => {
 
 export const addWorkSession = (session: WorkSession) => {
     state.workSessions = [...state.workSessions, session];
+    saveWorkSessions();
     notify();
 };
 
@@ -242,6 +302,7 @@ export const updateWorkSession = (sessionId: string, updates: Partial<WorkSessio
     state.workSessions = state.workSessions.map(s => 
         s.id === sessionId ? { ...s, ...updates } : s
     );
+    saveWorkSessions();
     notify();
 };
 // #endregion
