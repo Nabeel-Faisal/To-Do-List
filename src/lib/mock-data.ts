@@ -45,37 +45,20 @@ export const loadInitialData = () => {
     return;
   }
   try {
-    const serializedTasks = localStorage.getItem('tasks');
-    const serializedWorkSessions = localStorage.getItem('workSessions');
-    const serializedNotifications = localStorage.getItem('notifications');
+    // Clear old data for a fresh start
+    localStorage.removeItem('tasks');
+    localStorage.removeItem('workSessions');
+    localStorage.removeItem('notifications');
 
-    if (serializedTasks) {
-      const parsedTasks = JSON.parse(serializedTasks);
-      state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
-    } else {
-       state.tasks = initialTasksData.map(task => ({
-        ...task,
-        deadline: new Date(task.deadline),
-      }));
-    }
-
-    if (serializedWorkSessions) {
-      state.workSessions = JSON.parse(serializedWorkSessions);
-    }
-
-    if (serializedNotifications) {
-        state.notifications = JSON.parse(serializedNotifications);
-    } else {
-      state.notifications = [];
-    }
+    // For this request, we start fresh instead of loading.
+    state.tasks = [];
+    state.workSessions = [];
+    state.notifications = [];
     
   } catch (e) {
-    console.error("Failed to load state from localStorage", e);
+    console.error("Failed to initialize state", e);
     // If loading fails, initialize with default data
-    state.tasks = initialTasksData.map(task => ({
-      ...task,
-      deadline: new Date(task.deadline),
-    }));
+    state.tasks = [];
     state.workSessions = [];
     state.notifications = [];
   } finally {
