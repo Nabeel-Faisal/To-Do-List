@@ -23,62 +23,49 @@ export const mockAdmin: Employee = {
   department: 'Administration',
 };
 
-const defaultEmployee: Employee = {
-  id: 'emp-001',
-  username: 'alexdoe',
-  password: 'password123',
-  name: 'Sample Employee',
-  photo: 'https://placehold.co/100x100.png',
-  role: 'Software Engineer',
-  department: 'Technology',
-  status: 'Active',
-  lastLogin: new Date().toISOString(),
-};
-
 // This is the getter for all employees now.
 export let allEmployees: Employee[] = [];
 
 // Function to safely get data from localStorage only on the client side
 export const loadInitialData = () => {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || stateInitialized) {
     return;
   }
-  if (!stateInitialized) {
-    try {
-      const savedTasks = localStorage.getItem('tasks');
-      const savedWorkSessions = localStorage.getItem('workSessions');
-      const savedNotifications = localStorage.getItem('notifications');
-      const savedEmployees = localStorage.getItem('employees');
-      
-      if (savedTasks) {
-        const parsedTasks = JSON.parse(savedTasks);
-        state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
-      } else {
-        state.tasks = [];
-      }
 
-      state.workSessions = savedWorkSessions ? JSON.parse(savedWorkSessions) : [];
-      state.notifications = savedNotifications ? JSON.parse(savedNotifications) : [];
-
-      if (savedEmployees) {
-          state.employees = JSON.parse(savedEmployees);
-      } else {
-          // If no employees, start with admin
-          state.employees = [mockAdmin];
-      }
-      
-    } catch (e) {
-      console.error("Failed to initialize state from localStorage", e);
-      // If loading fails, initialize with default data
+  try {
+    const savedTasks = localStorage.getItem('tasks');
+    const savedWorkSessions = localStorage.getItem('workSessions');
+    const savedNotifications = localStorage.getItem('notifications');
+    const savedEmployees = localStorage.getItem('employees');
+    
+    if (savedTasks) {
+      const parsedTasks = JSON.parse(savedTasks);
+      state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
+    } else {
       state.tasks = [];
-      state.workSessions = [];
-      state.notifications = [];
-      state.employees = [mockAdmin];
-    } finally {
-      allEmployees = [...state.employees];
-      stateInitialized = true;
-      notify();
     }
+
+    state.workSessions = savedWorkSessions ? JSON.parse(savedWorkSessions) : [];
+    state.notifications = savedNotifications ? JSON.parse(savedNotifications) : [];
+
+    if (savedEmployees) {
+        state.employees = JSON.parse(savedEmployees);
+    } else {
+        // If no employees, start with admin
+        state.employees = [mockAdmin];
+    }
+    
+  } catch (e) {
+    console.error("Failed to initialize state from localStorage", e);
+    // If loading fails, initialize with default data
+    state.tasks = [];
+    state.workSessions = [];
+    state.notifications = [];
+    state.employees = [mockAdmin];
+  } finally {
+    allEmployees = [...state.employees];
+    stateInitialized = true;
+    notify();
   }
 };
 
@@ -106,6 +93,10 @@ function notify() {
 
 // #region Authentication
 export const authenticateUser = (username: string, password: string): { success: boolean, employee?: Employee } => {
+    // Ensure data is loaded before trying to authenticate
+    if (typeof window !== 'undefined' && !stateInitialized) {
+      loadInitialData();
+    }
     const user = state.employees.find(e => e.username === username && e.password === password);
     if (user) {
         return { success: true, employee: user };

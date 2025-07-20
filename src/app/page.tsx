@@ -17,13 +17,17 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Logo } from '@/components/icons';
 import { ThemeToggle } from '@/components/dashboard/theme-toggle';
-import { authenticateUser } from '@/lib/mock-data';
+import { authenticateUser, loadInitialData } from '@/lib/mock-data';
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    loadInitialData();
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
