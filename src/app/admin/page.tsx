@@ -48,8 +48,28 @@ export default function AdminDashboardPage() {
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
 
   React.useEffect(() => {
-    // Ensure this runs only on the client
-    setTasks(getInitialTasks());
+    // This effect handles the safe loading of data from localStorage on the client-side.
+    const TASKS_STORAGE_KEY = 'taskflow_tasks';
+    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+    
+    if (storedTasks) {
+       try {
+        const parsedTasks = JSON.parse(storedTasks).map((task: any) => ({
+          ...task,
+          deadline: new Date(task.deadline),
+        }));
+        setTasks(parsedTasks);
+      } catch (error) {
+        console.error("Failed to parse tasks from localStorage", error);
+        setTasks(getInitialTasks());
+      }
+    } else {
+      // If no tasks are in storage, initialize with default tasks.
+      const initialData = getInitialTasks();
+      setTasks(initialData);
+      saveTasks(initialData);
+    }
+    
     setEmployees(allEmployees);
     setNotifications(getNotifications());
   }, []);
@@ -59,15 +79,13 @@ export default function AdminDashboardPage() {
   };
 
   const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
-    // We get the latest tasks from storage to avoid state inconsistencies
-    const currentTasks = getInitialTasks();
     const taskToAdd: Task = {
       ...newTask,
       id: `task-${Date.now()}`,
       status: "Pending",
     };
     
-    const updatedTasks = [taskToAdd, ...currentTasks];
+    const updatedTasks = [taskToAdd, ...tasks];
     setTasks(updatedTasks);
     saveTasks(updatedTasks);
 

@@ -56,8 +56,28 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = React.useState('Dashboard');
 
   React.useEffect(() => {
-    // Ensure this runs only on the client
-    setAllTasks(getInitialTasks());
+    // This effect handles the safe loading of data from localStorage on the client-side.
+    const TASKS_STORAGE_KEY = 'taskflow_tasks';
+    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+    
+    if (storedTasks) {
+      try {
+        const parsedTasks = JSON.parse(storedTasks).map((task: any) => ({
+          ...task,
+          deadline: new Date(task.deadline),
+        }));
+        setAllTasks(parsedTasks);
+      } catch (error) {
+        console.error("Failed to parse tasks from localStorage", error);
+        setAllTasks(getInitialTasks());
+      }
+    } else {
+      // If no tasks are in storage, initialize with default tasks.
+      const initialData = getInitialTasks();
+      setAllTasks(initialData);
+      saveTasks(initialData);
+    }
+    
     setNotifications(getNotifications());
   }, []);
 

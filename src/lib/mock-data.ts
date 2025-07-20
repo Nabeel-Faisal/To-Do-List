@@ -19,7 +19,7 @@ export const mockAdmin: Employee = {
   department: 'Administration',
 };
 
-const initialTasks: Task[] = [
+export const initialTasks: Task[] = [
   {
     id: 'task-1',
     title: 'Design homepage UI',
@@ -117,27 +117,13 @@ const initialTasks: Task[] = [
 const TASKS_STORAGE_KEY = 'taskflow_tasks';
 
 export const getInitialTasks = (): Task[] => {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-  try {
-    const storedTasks = window.localStorage.getItem(TASKS_STORAGE_KEY);
-    // If we have tasks in storage, parse and return them.
-    if (storedTasks) {
-      return JSON.parse(storedTasks).map((task: any) => ({
-        ...task,
-        deadline: new Date(task.deadline),
-      }));
-    } 
-    // THIS IS THE CRITICAL CHANGE: Only set initial tasks if storage is empty.
-    const initialData = initialTasks.map(task => ({...task, deadline: new Date(task.deadline)}));
-    window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initialData.map(t => ({...t, deadline: t.deadline.toISOString()}))));
-    return initialData;
-    
-  } catch (error) {
-    console.error("Failed to parse tasks from localStorage", error);
-    return [];
-  }
+  // This function now ONLY returns the default tasks and does NOT interact with localStorage.
+  // This prevents hydration errors by ensuring server and client get the same initial data.
+  // The actual loading from localStorage is now handled in the component's useEffect.
+  return initialTasks.map(task => ({
+    ...task,
+    deadline: new Date(task.deadline),
+  }));
 };
 
 export const saveTasks = (tasks: Task[]) => {
