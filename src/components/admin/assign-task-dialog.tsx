@@ -43,7 +43,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { prioritizeTask } from "@/ai/flows/prioritize-task";
-import type { Task, TaskPriority } from "@/lib/types";
+import type { Task, TaskPriority, Employee } from "@/lib/types";
 
 const formSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
@@ -51,13 +51,15 @@ const formSchema = z.object({
     required_error: "A deadline is required.",
   }),
   priority: z.enum(["High", "Medium", "Low"]),
+  assignedTo: z.string({ required_error: "Please select an employee." }),
 });
 
 type AssignTaskDialogProps = {
   onAssignTask: (task: Omit<Task, 'id' | 'status'>) => void;
+  employees: Employee[];
 };
 
-export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
+export function AssignTaskDialog({ onAssignTask, employees }: AssignTaskDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const { toast } = useToast();
@@ -76,11 +78,11 @@ export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
       deadline: values.deadline,
       priority: values.priority,
       assignedBy: "Admin User",
-      assignedTo: "Sample Employee"
+      assignedTo: values.assignedTo,
     });
     toast({
       title: "Task Assigned",
-      description: `"${values.title}" has been assigned to the sample employee.`,
+      description: `"${values.title}" has been assigned to ${values.assignedTo}.`,
     });
     form.reset();
     setOpen(false);
@@ -122,6 +124,8 @@ export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
     }
   };
 
+  const employeeList = employees.filter(e => e.role !== 'System Administrator');
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -136,7 +140,7 @@ export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
         <DialogHeader>
           <DialogTitle>Assign New Task</DialogTitle>
           <DialogDescription>
-            Fill in the details below to assign a new task to the sample employee.
+            Fill in the details below to assign a new task to an employee.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -150,6 +154,28 @@ export function AssignTaskDialog({ onAssignTask }: AssignTaskDialogProps) {
                   <FormControl>
                     <Input placeholder="e.g., Finalize project report" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="assignedTo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign To</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an employee" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {employeeList.map(employee => (
+                        <SelectItem key={employee.id} value={employee.name}>{employee.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

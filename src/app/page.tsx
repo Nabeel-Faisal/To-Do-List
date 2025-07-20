@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Logo } from '@/components/icons';
 import { ThemeToggle } from '@/components/dashboard/theme-toggle';
+import { authenticateUser } from '@/lib/mock-data';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,11 +29,17 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    // Check for the demo credentials
-    if (username === 'admin' && password === 'admin123') {
-      router.push('/admin');
-    } else if (username === 'alexdoe' && password === 'password123') {
-      router.push('/dashboard');
+    const result = authenticateUser(username, password);
+
+    if (result.success) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('currentEmployeeId', result.employee!.id);
+      }
+      if (result.employee!.role === 'System Administrator') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } else {
       setError('Invalid username or password. Please try again.');
     }

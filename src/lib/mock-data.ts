@@ -2,7 +2,6 @@
 import type { Task, Employee, AppNotification, WorkSession } from './types';
 
 // #region State Management
-// Simple in-memory store and a pub/sub mechanism to notify components of changes.
 let listeners: (() => void)[] = [];
 let stateInitialized = false;
 
@@ -10,13 +9,24 @@ let state = {
   tasks: [] as Task[],
   notifications: [] as AppNotification[],
   workSessions: [] as WorkSession[],
+  employees: [] as Employee[],
 };
 
-const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [];
-
 // #region Employee Data
-export const mockEmployee: Employee = {
+export const mockAdmin: Employee = {
+  id: 'adm-001',
+  username: 'admin',
+  password: 'admin123',
+  name: 'Admin User',
+  photo: 'https://placehold.co/100x100.png',
+  role: 'System Administrator',
+  department: 'Administration',
+};
+
+const defaultEmployee: Employee = {
   id: 'emp-001',
+  username: 'alexdoe',
+  password: 'password123',
   name: 'Sample Employee',
   photo: 'https://placehold.co/100x100.png',
   role: 'Software Engineer',
@@ -25,42 +35,44 @@ export const mockEmployee: Employee = {
   lastLogin: new Date().toISOString(),
 };
 
-export const mockAdmin: Employee = {
-  id: 'adm-001',
-  name: 'Admin User',
-  photo: 'https://placehold.co/100x100.png',
-  role: 'System Administrator',
-  department: 'Administration',
-};
-
-export const allEmployees: Employee[] = [
-  { ...mockEmployee, id: 'emp-001', name: 'Sample Employee' }, 
-];
-// #endregion
+// This is the getter for all employees now.
+export const allEmployees: Employee[] = state.employees;
 
 // Function to safely get data from localStorage only on the client side
-// This should only be called once from a useEffect in a client component.
 export const loadInitialData = () => {
   if (typeof window === 'undefined' || stateInitialized) {
     return;
   }
   try {
-    // Clear old data for a fresh start
-    localStorage.removeItem('tasks');
-    localStorage.removeItem('workSessions');
-    localStorage.removeItem('notifications');
+    const savedTasks = localStorage.getItem('tasks');
+    const savedWorkSessions = localStorage.getItem('workSessions');
+    const savedNotifications = localStorage.getItem('notifications');
+    const savedEmployees = localStorage.getItem('employees');
+    
+    if (savedTasks) {
+      const parsedTasks = JSON.parse(savedTasks);
+      state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
+    } else {
+      state.tasks = [];
+    }
 
-    // For this request, we start fresh instead of loading.
-    state.tasks = [];
-    state.workSessions = [];
-    state.notifications = [];
+    state.workSessions = savedWorkSessions ? JSON.parse(savedWorkSessions) : [];
+    state.notifications = savedNotifications ? JSON.parse(savedNotifications) : [];
+
+    if (savedEmployees) {
+        state.employees = JSON.parse(savedEmployees);
+    } else {
+        // If no employees, start with admin and one default employee
+        state.employees = [mockAdmin, defaultEmployee];
+    }
     
   } catch (e) {
-    console.error("Failed to initialize state", e);
+    console.error("Failed to initialize state from localStorage", e);
     // If loading fails, initialize with default data
     state.tasks = [];
     state.workSessions = [];
     state.notifications = [];
+    state.employees = [mockAdmin, defaultEmployee];
   } finally {
     stateInitialized = true;
     notify();
@@ -68,22 +80,13 @@ export const loadInitialData = () => {
 };
 
 // Function to safely save data to localStorage
-const saveTasks = () => {
+const saveData = () => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('tasks', JSON.stringify(state.tasks));
+    localStorage.setItem('workSessions', JSON.stringify(state.workSessions));
+    localStorage.setItem('notifications', JSON.stringify(state.notifications));
+    localStorage.setItem('employees', JSON.stringify(state.employees));
   }
-};
-
-const saveWorkSessions = () => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('workSessions', JSON.stringify(state.workSessions));
-    }
-};
-
-const saveNotifications = () => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('notifications', JSON.stringify(state.notifications));
-    }
 };
 
 export function subscribe(listener: () => void) {
@@ -97,6 +100,47 @@ function notify() {
   listeners.forEach(listener => listener());
 }
 
+// #region Authentication
+export const authenticateUser = (username: string, password: string): { success: boolean, employee?: Employee } => {
+    const user = state.employees.find(e => e.username === username && e.password === password);
+    if (user) {
+        return { success: true, employee: user };
+    }
+    return { success: false };
+}
+
+export const getCurrentEmployee = (): Employee | null => {
+    if (typeof window === 'undefined') return null;
+    const currentId = sessionStorage.getItem('currentEmployeeId');
+    if (!currentId) return null;
+    return state.employees.find(e => e.id === currentId) || null;
+}
+// #endregion
+
+// #region Employee Management
+export const addEmployee = (employeeData: Omit<Employee, 'id' | 'photo' | 'status' | 'username' | 'password'>): Employee => {
+    const nameParts = employeeData.name.toLowerCase().split(' ');
+    const username = nameParts.length > 1 
+        ? `${nameParts[0]}${nameParts[nameParts.length - 1]}` 
+        : nameParts[0];
+
+    const password = Math.random().toString(36).slice(-8);
+
+    const newEmployee: Employee = {
+        ...employeeData,
+        id: `emp-${Date.now()}`,
+        photo: 'https://placehold.co/100x100.png',
+        status: 'Active',
+        username,
+        password,
+    };
+    state.employees.push(newEmployee);
+    saveData();
+    notify();
+    return newEmployee;
+}
+// #endregion
+
 // #region Tasks
 export const getTasks = (): Task[] => {
   return state.tasks;
@@ -109,11 +153,12 @@ export const addTask = (newTaskData: Omit<Task, 'id' | 'status'>) => {
     status: "Pending",
   };
   state.tasks = [newTask, ...state.tasks];
-  saveTasks();
+  saveData();
   addNotification({
     id: `notif-${Date.now()}`,
-    message: `New task assigned: "${newTask.title}"`,
+    message: `New task assigned: "${newTask.title}" for ${newTask.assignedTo}`,
     read: false,
+    recipient: newTask.assignedTo,
   });
   notify();
 };
@@ -122,26 +167,40 @@ export const updateTask = (taskId: string, updates: Partial<Task>) => {
   state.tasks = state.tasks.map(task =>
     task.id === taskId ? { ...task, ...updates } : task
   );
-  saveTasks();
+  saveData();
   notify();
 };
-
 // #endregion
 
 // #region Notifications
 export const getNotifications = (): AppNotification[] => {
-  return state.notifications;
+  const employee = getCurrentEmployee();
+  if (!employee) return [];
+  // Admins see all notifications, employees only see their own.
+  if (employee.role === 'System Administrator') {
+      return state.notifications;
+  }
+  return state.notifications.filter(n => n.recipient === employee.name);
 };
 
-export const addNotification = (notification: AppNotification) => {
-  state.notifications = [notification, ...state.notifications];
-  saveNotifications();
+export const addNotification = (notification: Omit<AppNotification, 'id'> & {id?: string}) => {
+  const newNotification : AppNotification = {
+      id: notification.id || `notif-${Date.now()}`,
+      ...notification,
+  }
+  state.notifications = [newNotification, ...state.notifications];
+  saveData();
   notify();
 };
 
 export const readAllNotifications = () => {
-  state.notifications = state.notifications.map(n => ({ ...n, read: true }));
-  saveNotifications();
+  const employee = getCurrentEmployee();
+  if (!employee) return;
+  
+  state.notifications = state.notifications.map(n => 
+    (n.recipient === employee.name ? { ...n, read: true } : n)
+  );
+  saveData();
   notify();
 };
 // #endregion
@@ -153,7 +212,7 @@ export const getWorkSessions = (): WorkSession[] => {
 
 export const addWorkSession = (session: WorkSession) => {
     state.workSessions = [...state.workSessions, session];
-    saveWorkSessions();
+    saveData();
     notify();
 };
 
@@ -161,7 +220,7 @@ export const updateWorkSession = (sessionId: string, updates: Partial<WorkSessio
     state.workSessions = state.workSessions.map(s => 
         s.id === sessionId ? { ...s, ...updates } : s
     );
-    saveWorkSessions();
+    saveData();
     notify();
 };
 // #endregion

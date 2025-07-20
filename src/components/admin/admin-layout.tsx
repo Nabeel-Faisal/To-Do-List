@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { Bell, LogOut, Settings, LayoutDashboard, Users, ClipboardCheck, BarChart2, Calendar, History, UserPlus } from "lucide-react";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,33 +29,23 @@ import {
 import { ThemeToggle } from "@/components/dashboard/theme-toggle";
 import { Logo } from "@/components/icons";
 import { AdminProfile } from "@/components/admin/admin-profile";
-import { AdminOverview } from "@/components/admin/admin-overview";
-import { EmployeeManagement } from "@/components/admin/employee-management";
-import { TaskMonitoring } from "@/components/admin/task-monitoring";
-import { AdminProductivityChart } from "@/components/admin/admin-productivity-chart";
-import { AttendanceTracker } from "@/components/admin/attendance-tracker";
-import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
-import { WorkHoursHistory } from "@/components/admin/work-hours-history";
 import {
-  allEmployees,
   mockAdmin,
-  addTask,
-  getTasks,
   getNotifications,
-  getWorkSessions,
   subscribe,
   loadInitialData,
 } from "@/lib/mock-data";
-import type { Task, Employee, AppNotification, WorkSession } from "@/lib/types";
+import type { AppNotification } from "@/lib/types";
 
+type AdminLayoutProps = {
+  children: React.ReactNode;
+  activeTab: string;
+};
 
-export default function AdminDashboardPage() {
+export function AdminLayout({ children, activeTab }: AdminLayoutProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState('Dashboard');
-  const [tasks, setTasks] = React.useState<Task[]>([]);
-  const [employees, setEmployees] = React.useState<Employee[]>([]);
+  const searchParams = useSearchParams();
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
-  const [workSessions, setWorkSessions] = React.useState<WorkSession[]>([]);
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -63,79 +53,35 @@ export default function AdminDashboardPage() {
     setIsClient(true);
     
     const handleUpdate = () => {
-      setTasks(getTasks());
       setNotifications(getNotifications());
-      setWorkSessions(getWorkSessions());
-      setEmployees(allEmployees);
     };
 
     const unsubscribe = subscribe(handleUpdate);
     handleUpdate();
 
-    return () => unsubscribe();
-  }, []);
+    // If there's a tab in the URL, go to the main page with that tab
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl) {
+      router.replace(`/admin?tab=${tabFromUrl}`);
+    }
 
+    return () => unsubscribe();
+  }, [router, searchParams]);
 
   const handleLogout = () => {
     router.push('/');
   };
-
-  const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
-    addTask(newTask);
-  };
   
   const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard },
-    { name: 'Employees', icon: Users },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+    { name: 'Employees', icon: Users, path: '/admin?tab=Employees' },
     { name: 'Add Employee', icon: UserPlus, path: '/admin/add-employee' },
-    { name: 'Tasks', icon: ClipboardCheck },
-    { name: 'Analytics', icon: BarChart2 },
-    { name: 'Attendance', icon: Calendar },
-    { name: 'Work History', icon: History },
+    { name: 'Tasks', icon: ClipboardCheck, path: '/admin?tab=Tasks' },
+    { name: 'Analytics', icon: BarChart2, path: '/admin?tab=Analytics' },
+    { name: 'Attendance', icon: Calendar, path: '/admin?tab=Attendance' },
+    { name: 'Work History', icon: History, path: '/admin?tab=Work History' },
   ];
-
-  const renderContent = () => {
-    if (!isClient) {
-        return <div className="p-8">Loading...</div>;
-    }
-    switch (activeTab) {
-      case 'Dashboard':
-        return (
-          <>
-            <AdminOverview employees={employees} tasks={tasks} />
-            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-              <div className="xl:col-span-2">
-                  <AdminProductivityChart />
-              </div>
-              <div className="space-y-8">
-                  <TaskMonitoring tasks={tasks} />
-              </div>
-            </div>
-             <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-                <div className="xl:col-span-2">
-                  <EmployeeManagement employees={employees} />
-                </div>
-                <div className="space-y-8">
-                  <AttendanceTracker employees={employees} />
-                </div>
-            </div>
-          </>
-        );
-      case 'Employees':
-        return <EmployeeManagement employees={employees} />;
-      case 'Tasks':
-        return <TaskMonitoring tasks={tasks} />;
-      case 'Analytics':
-        return <AdminProductivityChart />;
-      case 'Attendance':
-        return <AttendanceTracker employees={employees} />;
-      case 'Work History':
-        return <WorkHoursHistory sessions={workSessions} />;
-      default:
-        return <AdminOverview employees={employees} tasks={tasks} />;
-    }
-  };
-
+  
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
@@ -152,13 +98,7 @@ export default function AdminDashboardPage() {
                 <SidebarMenuButton 
                   tooltip={item.name} 
                   isActive={activeTab === item.name}
-                  onClick={() => {
-                    if (item.path) {
-                        router.push(item.path);
-                    } else {
-                        setActiveTab(item.name)
-                    }
-                  }}
+                  onClick={() => router.push(item.path)}
                 >
                   <item.icon />
                   <span>{item.name}</span>
@@ -187,11 +127,6 @@ export default function AdminDashboardPage() {
           <SidebarTrigger className="md:hidden" />
           <div className="w-full flex-1 flex items-center justify-between">
              <h1 className="text-lg font-semibold md:text-2xl">{activeTab}</h1>
-             {activeTab === 'Tasks' && (
-                <div className="flex items-center justify-end">
-                    <AssignTaskDialog onAssignTask={handleAssignTask} employees={employees}/>
-                </div>
-            )}
           </div>
           <div className="flex items-center gap-4">
             <DropdownMenu>
@@ -231,7 +166,7 @@ export default function AdminDashboardPage() {
           </div>
         </header>
         <main className="flex-1 p-4 md:p-8 space-y-8">
-          {renderContent()}
+          {children}
         </main>
       </SidebarInset>
     </SidebarProvider>

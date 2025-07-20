@@ -37,7 +37,6 @@ import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
 import { WorkHoursTimer } from "@/components/dashboard/work-hours-timer";
 import {
-  mockEmployee,
   getTasks,
   updateTask,
   addWorkSession,
@@ -46,8 +45,9 @@ import {
   readAllNotifications,
   subscribe,
   loadInitialData,
+  getCurrentEmployee,
 } from "@/lib/mock-data";
-import type { Task, AppNotification, WorkSession } from "@/lib/types";
+import type { Task, AppNotification, WorkSession, Employee } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
 const PlaceholderContent = ({ title, text }: { title: string, text: string }) => (
@@ -81,6 +81,7 @@ const initialTimerState: TimerState = { status: 'stopped', startTime: null, accu
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [employee, setEmployee] = React.useState<Employee | null>(null);
   const [allTasks, setAllTasks] = React.useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
@@ -92,6 +93,12 @@ export default function DashboardPage() {
 
   React.useEffect(() => {
     loadInitialData();
+    const currentEmployee = getCurrentEmployee();
+    if (!currentEmployee) {
+        router.push('/');
+        return;
+    }
+    setEmployee(currentEmployee);
     setIsClient(true);
 
     const handleUpdate = () => {
@@ -102,7 +109,7 @@ export default function DashboardPage() {
     handleUpdate();
     
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   // Timer logic moved here
   const updateDisplay = React.useCallback(() => {
@@ -134,12 +141,13 @@ export default function DashboardPage() {
   };
 
   const handleStartTimer = () => {
+    if (!employee) return;
     const now = new Date();
     const newSessionId = `session-${now.getTime()}`;
     const newSession: WorkSession = {
       id: newSessionId,
-      employeeId: mockEmployee.id,
-      employeeName: mockEmployee.name,
+      employeeId: employee.id,
+      employeeName: employee.name,
       startTime: now.toISOString(),
       endTime: null,
       date: formatDate(now, 'yyyy-MM-dd'),
@@ -183,7 +191,7 @@ export default function DashboardPage() {
   };
 
 
-  const employeeTasks = allTasks.filter(t => t.assignedTo === 'Sample Employee');
+  const employeeTasks = allTasks.filter(t => t.assignedTo === employee?.name);
 
   const toggleTaskCompletion = (taskId: string) => {
     const task = allTasks.find(t => t.id === taskId);
@@ -197,6 +205,9 @@ export default function DashboardPage() {
   );
   
   const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('currentEmployeeId');
+    }
     router.push('/');
   };
 
@@ -218,7 +229,7 @@ export default function DashboardPage() {
   ];
 
   const renderContent = () => {
-     if (!isClient) {
+     if (!isClient || !employee) {
         return <div className="p-8">Loading...</div>;
     }
     switch (activeTab) {
@@ -273,9 +284,11 @@ export default function DashboardPage() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-           <div className="p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pt-4">
-             <EmployeeProfile employee={mockEmployee} />
-           </div>
+           {employee && (
+            <div className="p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pt-4">
+              <EmployeeProfile employee={employee} />
+            </div>
+           )}
           <SidebarMenu>
              {menuItems.map((item) => (
               <SidebarMenuItem key={item.name}>

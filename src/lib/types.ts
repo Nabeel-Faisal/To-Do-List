@@ -23,12 +23,15 @@ export type Employee = {
   department: string;
   status?: EmployeeStatus;
   lastLogin?: string;
+  username?: string;
+  password?: string;
 };
 
 export type AppNotification = {
   id: string;
   message: string;
   read: boolean;
+  recipient?: string;
 };
 
 export type WorkSessionStatus = 'Active' | 'Paused' | 'Completed';
