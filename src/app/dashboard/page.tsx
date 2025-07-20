@@ -42,7 +42,6 @@ import {
   getNotifications,
   readAllNotifications,
   subscribe,
-  unsubscribe
 } from "@/lib/mock-data";
 import type { Task, AppNotification, WorkSession } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -68,8 +67,8 @@ export default function DashboardPage() {
       setAllTasks(getTasks());
       setNotifications(getNotifications());
     };
-    subscribe(handleUpdate);
-    return () => unsubscribe(handleUpdate);
+    const unsubscribe = subscribe(handleUpdate);
+    return () => unsubscribe();
   }, []);
 
   const employeeTasks = allTasks.filter(t => t.assignedTo === 'Sample Employee');

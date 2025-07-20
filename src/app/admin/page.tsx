@@ -44,7 +44,6 @@ import {
   getNotifications,
   getWorkSessions,
   subscribe,
-  unsubscribe,
 } from "@/lib/mock-data";
 import type { Task, Employee, AppNotification, WorkSession } from "@/lib/types";
 
@@ -64,8 +63,8 @@ export default function AdminDashboardPage() {
       setWorkSessions(getWorkSessions());
     };
 
-    subscribe(handleUpdate);
-    return () => unsubscribe(handleUpdate);
+    const unsubscribe = subscribe(handleUpdate);
+    return () => unsubscribe();
   }, []);
 
 
