@@ -14,15 +14,22 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { WorkSession } from "@/lib/types";
-import { getWorkSessions } from "@/lib/mock-data";
 
-export function WorkHoursHistory() {
-  const [sessions, setSessions] = React.useState<WorkSession[]>([]);
+type WorkHoursHistoryProps = {
+  sessions: WorkSession[];
+};
 
+export function WorkHoursHistory({ sessions }: WorkHoursHistoryProps) {
+  const [isClient, setIsClient] = React.useState(false);
+  
   React.useEffect(() => {
-    // This now runs only on the client, preventing hydration errors
-    setSessions(getWorkSessions().sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()));
+    setIsClient(true);
   }, []);
+
+  const sortedSessions = React.useMemo(() => {
+    return [...sessions].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+  }, [sessions]);
+
 
  const calculateDuration = (durationMs: number) => {
     if (durationMs === 0) return "0s";
@@ -75,8 +82,8 @@ export function WorkHoursHistory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sessions.length > 0 ? (
-              sessions.map((session) => (
+            {isClient && sortedSessions.length > 0 ? (
+              sortedSessions.map((session) => (
                 <TableRow key={session.id}>
                   <TableCell>{session.employeeName}</TableCell>
                   <TableCell>{format(new Date(session.date), 'PPP')}</TableCell>
@@ -89,7 +96,7 @@ export function WorkHoursHistory() {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
-                  No work sessions recorded yet.
+                  {isClient ? "No work sessions recorded yet." : "Loading..."}
                 </TableCell>
               </TableRow>
             )}

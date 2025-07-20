@@ -35,7 +35,15 @@ import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
 import { WorkHoursTimer } from "@/components/dashboard/work-hours-timer";
-import { mockEmployee, getInitialTasks } from "@/lib/mock-data";
+import {
+  mockEmployee,
+  getTasks,
+  updateTask,
+  getNotifications,
+  readAllNotifications,
+  subscribe,
+  unsubscribe
+} from "@/lib/mock-data";
 import type { Task, AppNotification, WorkSession } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
@@ -50,21 +58,27 @@ const PlaceholderContent = ({ title, text }: { title: string, text: string }) =>
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [allTasks, setAllTasks] = React.useState<Task[]>(getInitialTasks());
-  const [workSessions, setWorkSessions] = React.useState<WorkSession[]>([]);
+  const [allTasks, setAllTasks] = React.useState<Task[]>(getTasks());
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = React.useState<AppNotification[]>(getNotifications());
   const [activeTab, setActiveTab] = React.useState('Dashboard');
+
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      setAllTasks(getTasks());
+      setNotifications(getNotifications());
+    };
+    subscribe(handleUpdate);
+    return () => unsubscribe(handleUpdate);
+  }, []);
 
   const employeeTasks = allTasks.filter(t => t.assignedTo === 'Sample Employee');
 
   const toggleTaskCompletion = (taskId: string) => {
-    const updatedTasks = allTasks.map(task => 
-      task.id === taskId 
-        ? { ...task, status: task.status === 'Completed' ? 'Pending' : 'Completed' }
-        : task
-    );
-    setAllTasks(updatedTasks);
+    const task = allTasks.find(t => t.id === taskId);
+    if (task) {
+      updateTask(taskId, { status: task.status === 'Completed' ? 'Pending' : 'Completed' });
+    }
   };
   
   const filteredTasks = employeeTasks.filter(task =>
@@ -78,7 +92,7 @@ export default function DashboardPage() {
   const unreadNotificationCount = notifications.filter(n => !n.read).length;
 
   const handleNotificationClick = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    readAllNotifications();
   };
   
   const menuItems = [
@@ -103,7 +117,7 @@ export default function DashboardPage() {
                  <ProductivityChart tasks={employeeTasks} />
               </div>
                <div className="space-y-8">
-                <WorkHoursTimer onSessionChange={setWorkSessions} />
+                <WorkHoursTimer />
                 <UpcomingDeadlines tasks={employeeTasks} />
               </div>
             </div>

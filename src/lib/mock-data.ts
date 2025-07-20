@@ -1,6 +1,29 @@
 
 import type { Task, Employee, AppNotification, WorkSession } from './types';
 
+// #region State Management
+// Simple in-memory store and a pub/sub mechanism to notify components of changes.
+let listeners: (() => void)[] = [];
+
+let state = {
+  tasks: [] as Task[],
+  notifications: [] as AppNotification[],
+  workSessions: [] as WorkSession[],
+};
+
+export function subscribe(listener: () => void) {
+  listeners.push(listener);
+  return function unsubscribe() {
+    listeners = listeners.filter(l => l !== listener);
+  };
+}
+
+function notify() {
+  listeners.forEach(listener => listener());
+}
+// #endregion
+
+// #region Employee Data
 export const mockEmployee: Employee = {
   id: 'emp-001',
   name: 'Sample Employee',
@@ -19,6 +42,48 @@ export const mockAdmin: Employee = {
   department: 'Administration',
 };
 
+export const allEmployees: Employee[] = [
+  { ...mockEmployee, id: 'emp-001', name: 'Sample Employee' }, 
+  {
+    id: 'emp-002',
+    name: 'Jane Smith',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Project Manager',
+    department: 'Management',
+    status: 'Active',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
+  },
+  {
+    id: 'emp-003',
+    name: 'John Doe',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Lead Designer',
+    department: 'Design',
+    status: 'On Leave',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
+  },
+  {
+    id: 'emp-004',
+    name: 'Emily White',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Marketing Specialist',
+    department: 'Marketing',
+    status: 'Active',
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'emp-005',
+    name: 'Michael Brown',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'QA Tester',
+    department: 'Technology',
+    status: 'Inactive',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
+  },
+];
+// #endregion
+
+// #region Tasks
 const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [
   {
     id: 'task-1',
@@ -112,61 +177,71 @@ const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [
   }
 ];
 
-export const getInitialTasks = (): Task[] => {
-  return initialTasksData.map(task => ({
-    ...task,
-    deadline: new Date(task.deadline),
-  }));
+// Initialize state
+state.tasks = initialTasksData.map(task => ({
+  ...task,
+  deadline: new Date(task.deadline),
+}));
+
+
+export const getTasks = (): Task[] => {
+  return state.tasks;
 };
 
-export const allEmployees: Employee[] = [
-  // The first employee is our sample employee. We change the name but keep the ID for assignments.
-  { ...mockEmployee, id: 'emp-001', name: 'Sample Employee' }, 
-  {
-    id: 'emp-002',
-    name: 'Jane Smith',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'Project Manager',
-    department: 'Management',
-    status: 'Active',
-    lastLogin: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-  },
-  {
-    id: 'emp-003',
-    name: 'John Doe',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'Lead Designer',
-    department: 'Design',
-    status: 'On Leave',
-    lastLogin: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-  },
-  {
-    id: 'emp-004',
-    name: 'Emily White',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'Marketing Specialist',
-    department: 'Marketing',
-    status: 'Active',
-    lastLogin: new Date().toISOString(),
-  },
-  {
-    id: 'emp-005',
-    name: 'Michael Brown',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'QA Tester',
-    department: 'Technology',
-    status: 'Inactive',
-    lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
-  },
-];
+export const addTask = (newTaskData: Omit<Task, 'id' | 'status'>) => {
+  const newTask: Task = {
+    ...newTaskData,
+    id: `task-${Date.now()}`,
+    status: "Pending",
+  };
+  state.tasks = [newTask, ...state.tasks];
+  addNotification({
+    id: `notif-${Date.now()}`,
+    message: `New task assigned: "${newTask.title}"`,
+    read: false,
+  });
+  notify();
+};
 
-// In-memory data for work sessions
-let workSessions: WorkSession[] = [];
+export const updateTask = (taskId: string, updates: Partial<Task>) => {
+  state.tasks = state.tasks.map(task =>
+    task.id === taskId ? { ...task, ...updates } : task
+  );
+  notify();
+};
 
+// #endregion
+
+// #region Notifications
+export const getNotifications = (): AppNotification[] => {
+  return state.notifications;
+};
+
+export const addNotification = (notification: AppNotification) => {
+  state.notifications = [notification, ...state.notifications];
+  // No need to call notify() here as it's called by the function that creates the notification
+};
+
+export const readAllNotifications = () => {
+  state.notifications = state.notifications.map(n => ({ ...n, read: true }));
+  notify();
+};
+// #endregion
+
+// #region Work Sessions
 export const getWorkSessions = (): WorkSession[] => {
-    return workSessions;
+  return state.workSessions;
 };
 
-export const setWorkSessions = (sessions: WorkSession[]) => {
-    workSessions = sessions;
+export const addWorkSession = (session: WorkSession) => {
+    state.workSessions = [...state.workSessions, session];
+    notify();
 };
+
+export const updateWorkSession = (sessionId: string, updates: Partial<WorkSession>) => {
+    state.workSessions = state.workSessions.map(s => 
+        s.id === sessionId ? { ...s, ...updates } : s
+    );
+    notify();
+};
+// #endregion

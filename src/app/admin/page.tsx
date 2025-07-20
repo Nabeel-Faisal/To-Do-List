@@ -36,37 +36,45 @@ import { AdminProductivityChart } from "@/components/admin/admin-productivity-ch
 import { AttendanceTracker } from "@/components/admin/attendance-tracker";
 import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
 import { WorkHoursHistory } from "@/components/admin/work-hours-history";
-import { getInitialTasks, allEmployees, mockAdmin } from "@/lib/mock-data";
-import type { Task, Employee, AppNotification } from "@/lib/types";
+import {
+  allEmployees,
+  mockAdmin,
+  addTask,
+  getTasks,
+  getNotifications,
+  getWorkSessions,
+  subscribe,
+  unsubscribe,
+} from "@/lib/mock-data";
+import type { Task, Employee, AppNotification, WorkSession } from "@/lib/types";
 
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState('Dashboard');
-  const [tasks, setTasks] = React.useState<Task[]>(getInitialTasks());
+  const [tasks, setTasks] = React.useState<Task[]>(getTasks());
   const [employees] = React.useState<Employee[]>(allEmployees);
-  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = React.useState<AppNotification[]>(getNotifications());
+  const [workSessions, setWorkSessions] = React.useState<WorkSession[]>(getWorkSessions());
+
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      setTasks(getTasks());
+      setNotifications(getNotifications());
+      setWorkSessions(getWorkSessions());
+    };
+
+    subscribe(handleUpdate);
+    return () => unsubscribe(handleUpdate);
+  }, []);
+
 
   const handleLogout = () => {
     router.push('/');
   };
 
   const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
-    const taskToAdd: Task = {
-      ...newTask,
-      id: `task-${Date.now()}`,
-      status: "Pending",
-    };
-    
-    const updatedTasks = [taskToAdd, ...tasks];
-    setTasks(updatedTasks);
-
-    const newNotification: AppNotification = {
-      id: `notif-${Date.now()}`,
-      message: `New task assigned: "${taskToAdd.title}"`,
-      read: false,
-    };
-    setNotifications([newNotification, ...notifications]);
+    addTask(newTask);
   };
   
   const menuItems = [
@@ -111,7 +119,7 @@ export default function AdminDashboardPage() {
       case 'Attendance':
         return <AttendanceTracker employees={employees} />;
       case 'Work History':
-        return <WorkHoursHistory />;
+        return <WorkHoursHistory sessions={workSessions} />;
       default:
         return <AdminOverview employees={employees} tasks={tasks} />;
     }

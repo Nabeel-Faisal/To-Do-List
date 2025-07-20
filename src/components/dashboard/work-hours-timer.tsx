@@ -5,7 +5,7 @@ import * as React from "react";
 import { Play, Square, Pause, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockEmployee } from "@/lib/mock-data";
+import { mockEmployee, addWorkSession, updateWorkSession } from "@/lib/mock-data";
 import type { WorkSession } from "@/lib/types";
 import { format as formatDate } from 'date-fns';
 import { cn } from "@/lib/utils";
@@ -30,11 +30,8 @@ const formatTime = (ms: number) => {
 
 const initialTimerState: TimerState = { status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null };
 
-type WorkHoursTimerProps = {
-  onSessionChange: React.Dispatch<React.SetStateAction<WorkSession[]>>;
-};
 
-export function WorkHoursTimer({ onSessionChange }: WorkHoursTimerProps) {
+export function WorkHoursTimer() {
   const [timerState, setTimerState] = React.useState<TimerState>(initialTimerState);
   const [elapsedTime, setElapsedTime] = React.useState(formatTime(0));
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -64,11 +61,7 @@ export function WorkHoursTimer({ onSessionChange }: WorkHoursTimerProps) {
 
   const updateSession = (updates: Partial<WorkSession>) => {
     if (!timerState.sessionId) return;
-    onSessionChange(prev => 
-      prev.map(session =>
-        session.id === timerState.sessionId ? { ...session, ...updates } : session
-      )
-    );
+    updateWorkSession(timerState.sessionId, updates);
   };
 
   const handleStartTimer = () => {
@@ -85,7 +78,7 @@ export function WorkHoursTimer({ onSessionChange }: WorkHoursTimerProps) {
       status: 'Active',
     };
 
-    onSessionChange(prev => [...prev, newSession]);
+    addWorkSession(newSession);
     setTimerState({ status: 'running', startTime: now.getTime(), accumulatedTime: 0, sessionId: newSessionId });
   };
 
