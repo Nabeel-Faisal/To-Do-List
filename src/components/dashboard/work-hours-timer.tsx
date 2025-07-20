@@ -5,10 +5,17 @@ import * as React from "react";
 import { Play, Square, Pause, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTimerState, saveTimerState, getWorkSessions, saveWorkSessions, mockEmployee, type TimerState } from "@/lib/mock-data";
+import { mockEmployee } from "@/lib/mock-data";
 import type { WorkSession } from "@/lib/types";
 import { format as formatDate } from 'date-fns';
 import { cn } from "@/lib/utils";
+
+type TimerState = {
+    status: 'stopped' | 'running' | 'paused';
+    startTime: number | null; // The time the current interval started (as timestamp)
+    accumulatedTime: number; // Time in ms accumulated before the current interval
+    sessionId: string | null;
+}
 
 const formatTime = (ms: number) => {
     if (isNaN(ms) || ms < 0) {
@@ -23,65 +30,45 @@ const formatTime = (ms: number) => {
 
 const initialTimerState: TimerState = { status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null };
 
-export function WorkHoursTimer() {
+type WorkHoursTimerProps = {
+  onSessionChange: React.Dispatch<React.SetStateAction<WorkSession[]>>;
+};
+
+export function WorkHoursTimer({ onSessionChange }: WorkHoursTimerProps) {
   const [timerState, setTimerState] = React.useState<TimerState>(initialTimerState);
   const [elapsedTime, setElapsedTime] = React.useState(formatTime(0));
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  React.useEffect(() => {
-    // Load state from localStorage only on the client
-    const savedState = getTimerState();
-    if (savedState) {
-        setTimerState(savedState);
-        let currentElapsedTime = savedState.accumulatedTime;
-        if (savedState.status === 'running' && savedState.startTime) {
-             const now = new Date().getTime();
-             const startMs = new Date(savedState.startTime).getTime();
-             if (!isNaN(startMs)) {
-                currentElapsedTime += (now - startMs);
-             }
-        }
-        setElapsedTime(formatTime(currentElapsedTime));
-    }
-  }, []);
-  
-  const updateDisplay = (accumulated: number, start: string | null, status: 'running' | 'paused' | 'stopped') => {
-      let currentElapsedTime = accumulated;
-      if (status === 'running' && start) {
-          const now = new Date().getTime();
-          const startMs = new Date(start).getTime();
-          if (!isNaN(startMs)) {
-            currentElapsedTime += (now - startMs);
-          }
+  const updateDisplay = React.useCallback(() => {
+      let currentElapsedTime = timerState.accumulatedTime;
+      if (timerState.status === 'running' && timerState.startTime) {
+          currentElapsedTime += (new Date().getTime() - timerState.startTime);
       }
       setElapsedTime(formatTime(currentElapsedTime));
-  };
+  }, [timerState.accumulatedTime, timerState.startTime, timerState.status]);
 
   React.useEffect(() => {
-    saveTimerState(timerState);
     if (timerState.status === 'running') {
-      intervalRef.current = setInterval(() => {
-        updateDisplay(timerState.accumulatedTime, timerState.startTime, 'running');
-      }, 1000);
+      intervalRef.current = setInterval(updateDisplay, 1000);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      updateDisplay(timerState.accumulatedTime, timerState.startTime, timerState.status);
+      updateDisplay(); // one final update
     }
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [timerState]);
+  }, [timerState.status, updateDisplay]);
 
   const updateSession = (updates: Partial<WorkSession>) => {
     if (!timerState.sessionId) return;
-    const sessions = getWorkSessions();
-    const updatedSessions = sessions.map(session =>
-      session.id === timerState.sessionId ? { ...session, ...updates } : session
+    onSessionChange(prev => 
+      prev.map(session =>
+        session.id === timerState.sessionId ? { ...session, ...updates } : session
+      )
     );
-    saveWorkSessions(updatedSessions);
   };
 
   const handleStartTimer = () => {
@@ -98,16 +85,15 @@ export function WorkHoursTimer() {
       status: 'Active',
     };
 
-    saveWorkSessions([...getWorkSessions(), newSession]);
-    setTimerState({ status: 'running', startTime: now.toISOString(), accumulatedTime: 0, sessionId: newSessionId });
+    onSessionChange(prev => [...prev, newSession]);
+    setTimerState({ status: 'running', startTime: now.getTime(), accumulatedTime: 0, sessionId: newSessionId });
   };
 
   const handlePauseTimer = () => {
     if (timerState.status !== 'running' || !timerState.startTime) return;
     
     const now = new Date().getTime();
-    const startMs = new Date(timerState.startTime).getTime();
-    const newAccumulatedTime = timerState.accumulatedTime + (now - startMs);
+    const newAccumulatedTime = timerState.accumulatedTime + (now - timerState.startTime);
 
     updateSession({ status: 'Paused', totalDuration: newAccumulatedTime });
     setTimerState(prev => ({ ...prev, status: 'paused', accumulatedTime: newAccumulatedTime, startTime: null }));
@@ -116,9 +102,8 @@ export function WorkHoursTimer() {
   const handleResumeTimer = () => {
     if (timerState.status !== 'paused') return;
 
-    const now = new Date().toISOString();
     updateSession({ status: 'Active' });
-    setTimerState(prev => ({ ...prev, status: 'running', startTime: now }));
+    setTimerState(prev => ({ ...prev, status: 'running', startTime: new Date().getTime() }));
   };
 
   const handleStopTimer = () => {
@@ -128,12 +113,11 @@ export function WorkHoursTimer() {
     let finalAccumulatedTime = timerState.accumulatedTime;
     
     if (timerState.status === 'running' && timerState.startTime) {
-      finalAccumulatedTime += (now.getTime() - new Date(timerState.startTime).getTime());
+      finalAccumulatedTime += (now.getTime() - timerState.startTime);
     }
 
     updateSession({ status: 'Completed', endTime: now.toISOString(), totalDuration: finalAccumulatedTime });
     setTimerState({ status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null });
-    setElapsedTime(formatTime(0)); // Reset display
   };
   
   const statusText = {

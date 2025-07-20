@@ -36,43 +36,16 @@ import { AdminProductivityChart } from "@/components/admin/admin-productivity-ch
 import { AttendanceTracker } from "@/components/admin/attendance-tracker";
 import { AssignTaskDialog } from "@/components/admin/assign-task-dialog";
 import { WorkHoursHistory } from "@/components/admin/work-hours-history";
-import { getInitialTasks, saveTasks, allEmployees, mockAdmin, addNotification, getNotifications } from "@/lib/mock-data";
+import { getInitialTasks, allEmployees, mockAdmin } from "@/lib/mock-data";
 import type { Task, Employee, AppNotification } from "@/lib/types";
 
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = React.useState('Dashboard');
-  const [tasks, setTasks] = React.useState<Task[]>([]);
-  const [employees, setEmployees] = React.useState<Employee[]>([]);
+  const [tasks, setTasks] = React.useState<Task[]>(getInitialTasks());
+  const [employees] = React.useState<Employee[]>(allEmployees);
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
-
-  React.useEffect(() => {
-    // This effect handles the safe loading of data from localStorage on the client-side.
-    const TASKS_STORAGE_KEY = 'taskflow_tasks';
-    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
-    
-    if (storedTasks) {
-       try {
-        const parsedTasks = JSON.parse(storedTasks).map((task: any) => ({
-          ...task,
-          deadline: new Date(task.deadline),
-        }));
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error("Failed to parse tasks from localStorage", error);
-        setTasks(getInitialTasks());
-      }
-    } else {
-      // If no tasks are in storage, initialize with default tasks.
-      const initialData = getInitialTasks();
-      setTasks(initialData);
-      saveTasks(initialData);
-    }
-    
-    setEmployees(allEmployees);
-    setNotifications(getNotifications());
-  }, []);
 
   const handleLogout = () => {
     router.push('/');
@@ -87,14 +60,12 @@ export default function AdminDashboardPage() {
     
     const updatedTasks = [taskToAdd, ...tasks];
     setTasks(updatedTasks);
-    saveTasks(updatedTasks);
 
     const newNotification: AppNotification = {
       id: `notif-${Date.now()}`,
       message: `New task assigned: "${taskToAdd.title}"`,
       read: false,
     };
-    addNotification(newNotification);
     setNotifications([newNotification, ...notifications]);
   };
   

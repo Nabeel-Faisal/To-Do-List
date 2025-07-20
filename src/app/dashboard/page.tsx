@@ -35,8 +35,8 @@ import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
 import { WorkHoursTimer } from "@/components/dashboard/work-hours-timer";
-import { mockEmployee, getInitialTasks, saveTasks, getNotifications, markNotificationsAsRead } from "@/lib/mock-data";
-import type { Task, AppNotification } from "@/lib/types";
+import { mockEmployee, getInitialTasks } from "@/lib/mock-data";
+import type { Task, AppNotification, WorkSession } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
 const PlaceholderContent = ({ title, text }: { title: string, text: string }) => (
@@ -50,36 +50,11 @@ const PlaceholderContent = ({ title, text }: { title: string, text: string }) =>
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [allTasks, setAllTasks] = React.useState<Task[]>([]);
+  const [allTasks, setAllTasks] = React.useState<Task[]>(getInitialTasks());
+  const [workSessions, setWorkSessions] = React.useState<WorkSession[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
   const [activeTab, setActiveTab] = React.useState('Dashboard');
-
-  React.useEffect(() => {
-    // This effect handles the safe loading of data from localStorage on the client-side.
-    const TASKS_STORAGE_KEY = 'taskflow_tasks';
-    const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
-    
-    if (storedTasks) {
-      try {
-        const parsedTasks = JSON.parse(storedTasks).map((task: any) => ({
-          ...task,
-          deadline: new Date(task.deadline),
-        }));
-        setAllTasks(parsedTasks);
-      } catch (error) {
-        console.error("Failed to parse tasks from localStorage", error);
-        setAllTasks(getInitialTasks());
-      }
-    } else {
-      // If no tasks are in storage, initialize with default tasks.
-      const initialData = getInitialTasks();
-      setAllTasks(initialData);
-      saveTasks(initialData);
-    }
-    
-    setNotifications(getNotifications());
-  }, []);
 
   const employeeTasks = allTasks.filter(t => t.assignedTo === 'Sample Employee');
 
@@ -90,7 +65,6 @@ export default function DashboardPage() {
         : task
     );
     setAllTasks(updatedTasks);
-    saveTasks(updatedTasks);
   };
   
   const filteredTasks = employeeTasks.filter(task =>
@@ -104,8 +78,7 @@ export default function DashboardPage() {
   const unreadNotificationCount = notifications.filter(n => !n.read).length;
 
   const handleNotificationClick = () => {
-    markNotificationsAsRead();
-    setNotifications(getNotifications());
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
   
   const menuItems = [
@@ -130,7 +103,7 @@ export default function DashboardPage() {
                  <ProductivityChart tasks={employeeTasks} />
               </div>
                <div className="space-y-8">
-                <WorkHoursTimer />
+                <WorkHoursTimer onSessionChange={setWorkSessions} />
                 <UpcomingDeadlines tasks={employeeTasks} />
               </div>
             </div>
