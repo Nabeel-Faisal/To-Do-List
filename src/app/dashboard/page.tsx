@@ -4,6 +4,7 @@
 import * as React from "react";
 import { Bell, LogOut, Search, Settings, LayoutDashboard, ClipboardCheck, BarChart2, Calendar, MessageSquare, HelpCircle, Plane } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { format as formatDate } from 'date-fns';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,8 @@ import {
   mockEmployee,
   getTasks,
   updateTask,
+  addWorkSession,
+  updateWorkSession,
   getNotifications,
   readAllNotifications,
   subscribe,
@@ -55,12 +58,35 @@ const PlaceholderContent = ({ title, text }: { title: string, text: string }) =>
   </div>
 );
 
+type TimerState = {
+    status: 'stopped' | 'running' | 'paused';
+    startTime: number | null;
+    accumulatedTime: number;
+    sessionId: string | null;
+}
+
+const formatTime = (ms: number) => {
+    if (isNaN(ms) || ms < 0) {
+        return "00:00:00";
+    }
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
+const initialTimerState: TimerState = { status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null };
+
 export default function DashboardPage() {
   const router = useRouter();
-  const [allTasks, setAllTasks] = React.useState<Task[]>(getTasks());
+  const [allTasks, setAllTasks] = React.useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [notifications, setNotifications] = React.useState<AppNotification[]>(getNotifications());
+  const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
   const [activeTab, setActiveTab] = React.useState('Dashboard');
+  const [timerState, setTimerState] = React.useState<TimerState>(initialTimerState);
+  const [elapsedTime, setElapsedTime] = React.useState(formatTime(0));
+  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     const handleUpdate = () => {
@@ -68,8 +94,91 @@ export default function DashboardPage() {
       setNotifications(getNotifications());
     };
     const unsubscribe = subscribe(handleUpdate);
+    
+    setAllTasks(getTasks());
+    setNotifications(getNotifications());
+
     return () => unsubscribe();
   }, []);
+
+  // Timer logic moved here
+  const updateDisplay = React.useCallback(() => {
+      let currentElapsedTime = timerState.accumulatedTime;
+      if (timerState.status === 'running' && timerState.startTime) {
+          currentElapsedTime += (new Date().getTime() - timerState.startTime);
+      }
+      setElapsedTime(formatTime(currentElapsedTime));
+  }, [timerState.accumulatedTime, timerState.startTime, timerState.status]);
+
+  React.useEffect(() => {
+    if (timerState.status === 'running') {
+      intervalRef.current = setInterval(updateDisplay, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      updateDisplay();
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [timerState.status, updateDisplay]);
+  
+  const updateSession = (updates: Partial<WorkSession>) => {
+    if (!timerState.sessionId) return;
+    updateWorkSession(timerState.sessionId, updates);
+  };
+
+  const handleStartTimer = () => {
+    const now = new Date();
+    const newSessionId = `session-${now.getTime()}`;
+    const newSession: WorkSession = {
+      id: newSessionId,
+      employeeId: mockEmployee.id,
+      employeeName: mockEmployee.name,
+      startTime: now.toISOString(),
+      endTime: null,
+      date: formatDate(now, 'yyyy-MM-dd'),
+      totalDuration: 0,
+      status: 'Active',
+    };
+
+    addWorkSession(newSession);
+    setTimerState({ status: 'running', startTime: now.getTime(), accumulatedTime: 0, sessionId: newSessionId });
+  };
+
+  const handlePauseTimer = () => {
+    if (timerState.status !== 'running' || !timerState.startTime) return;
+    
+    const now = new Date().getTime();
+    const newAccumulatedTime = timerState.accumulatedTime + (now - timerState.startTime);
+
+    updateSession({ status: 'Paused', totalDuration: newAccumulatedTime });
+    setTimerState(prev => ({ ...prev, status: 'paused', accumulatedTime: newAccumulatedTime, startTime: null }));
+  };
+
+  const handleResumeTimer = () => {
+    if (timerState.status !== 'paused') return;
+
+    updateSession({ status: 'Active' });
+    setTimerState(prev => ({ ...prev, status: 'running', startTime: new Date().getTime() }));
+  };
+
+  const handleStopTimer = () => {
+    if (timerState.status === 'stopped' || !timerState.sessionId) return;
+    
+    const now = new Date();
+    let finalAccumulatedTime = timerState.accumulatedTime;
+    
+    if (timerState.status === 'running' && timerState.startTime) {
+      finalAccumulatedTime += (now.getTime() - timerState.startTime);
+    }
+
+    updateSession({ status: 'Completed', endTime: now.toISOString(), totalDuration: finalAccumulatedTime });
+    setTimerState({ status: 'stopped', startTime: null, accumulatedTime: 0, sessionId: null });
+  };
+
 
   const employeeTasks = allTasks.filter(t => t.assignedTo === 'Sample Employee');
 
@@ -116,7 +225,14 @@ export default function DashboardPage() {
                  <ProductivityChart tasks={employeeTasks} />
               </div>
                <div className="space-y-8">
-                <WorkHoursTimer />
+                <WorkHoursTimer
+                  elapsedTime={elapsedTime}
+                  status={timerState.status}
+                  onStart={handleStartTimer}
+                  onPause={handlePauseTimer}
+                  onResume={handleResumeTimer}
+                  onStop={handleStopTimer}
+                />
                 <UpcomingDeadlines tasks={employeeTasks} />
               </div>
             </div>
