@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Search, Settings, LayoutDashboard, ClipboardCheck, BarChart2, Calendar, MessageSquare, HelpCircle, Plane } from "lucide-react";
+import { Bell, LogOut, Search, Settings, LayoutDashboard, ClipboardCheck, BarChart2, Calendar, MessageSquare, HelpCircle, Plane, UserPlus } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { format as formatDate } from 'date-fns';
 
@@ -36,9 +36,11 @@ import { ProductivityChart } from "@/components/dashboard/productivity-chart";
 import { TaskList } from "@/components/dashboard/task-list";
 import { UpcomingDeadlines } from "@/components/dashboard/upcoming-deadlines";
 import { WorkHoursTimer } from "@/components/dashboard/work-hours-timer";
+import { AssignTaskPage } from "@/components/dashboard/assign-task-page";
 import {
   getTasks,
   updateTask,
+  addTask,
   addWorkSession,
   updateWorkSession,
   getNotifications,
@@ -46,6 +48,7 @@ import {
   subscribe,
   loadInitialData,
   getCurrentEmployee,
+  allEmployees,
 } from "@/lib/mock-data";
 import type { Task, AppNotification, WorkSession, Employee } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +86,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [employee, setEmployee] = React.useState<Employee | null>(null);
   const [allTasks, setAllTasks] = React.useState<Task[]>([]);
+  const [employees, setEmployees] = React.useState<Employee[]>([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
   const [activeTab, setActiveTab] = React.useState('Dashboard');
@@ -104,6 +108,7 @@ export default function DashboardPage() {
     const handleUpdate = () => {
       setAllTasks(getTasks());
       setNotifications(getNotifications());
+      setEmployees(allEmployees);
     };
     const unsubscribe = subscribe(handleUpdate);
     handleUpdate();
@@ -207,6 +212,7 @@ export default function DashboardPage() {
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
         sessionStorage.removeItem('currentEmployeeId');
+        localStorage.clear();
     }
     router.push('/');
   };
@@ -220,6 +226,7 @@ export default function DashboardPage() {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard },
     { name: 'My Tasks', icon: ClipboardCheck },
+    { name: 'Assign Task', icon: UserPlus },
     { name: 'Attendance', icon: Calendar },
     { name: 'Leave Requests', icon: Plane },
     { name: 'Messages', icon: MessageSquare },
@@ -227,6 +234,10 @@ export default function DashboardPage() {
     { name: 'Settings', icon: Settings },
     { name: 'Help Center', icon: HelpCircle },
   ];
+
+  const handleAssignTask = (newTask: Omit<Task, 'id' | 'status'>) => {
+    addTask(newTask);
+  };
 
   const renderContent = () => {
      if (!isClient || !employee) {
@@ -257,6 +268,8 @@ export default function DashboardPage() {
         );
       case 'My Tasks':
         return <TaskList tasks={filteredTasks} onToggleTask={toggleTaskCompletion} />;
+      case 'Assign Task':
+        return <AssignTaskPage onAssignTask={handleAssignTask} employees={employees} currentUser={employee} />;
       case 'Attendance':
         return <PlaceholderContent title="Attendance" text="Your attendance record will appear here. Tracking feature launching soon." />;
       case 'Leave Requests':
