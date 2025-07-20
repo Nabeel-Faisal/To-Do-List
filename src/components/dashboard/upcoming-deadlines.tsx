@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import type { Task } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 type UpcomingDeadlinesProps = {
   tasks: Task[];
@@ -54,11 +55,11 @@ export function UpcomingDeadlines({ tasks }: UpcomingDeadlinesProps) {
           classNames={{
             day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90",
           }}
-          disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
+          disabled={(d) => d < new Date(new Date().setHours(0,0,0,0))}
         />
         <div className="w-full mt-4 space-y-2">
             <h4 className="font-medium">
-                Tasks for {date ? date.toLocaleDateString() : 'selected date'}:
+                Tasks for {date ? format(date, 'PPP') : 'selected date'}:
             </h4>
             {tasksForSelectedDate.length > 0 ? (
                 <ul className="space-y-2">

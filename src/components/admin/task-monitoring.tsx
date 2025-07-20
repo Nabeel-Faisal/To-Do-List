@@ -1,4 +1,7 @@
 
+"use client";
+
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { Task } from "@/lib/types";
@@ -8,10 +11,18 @@ type TaskMonitoringProps = {
 };
 
 export function TaskMonitoring({ tasks }: TaskMonitoringProps) {
+  const [delayed, setDelayed] = React.useState(0);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+    const now = new Date();
+    setDelayed(tasks.filter(t => new Date(t.deadline) < now && t.status !== 'Completed').length);
+  }, [tasks]);
+
   const completed = tasks.filter(t => t.status === 'Completed').length;
   const inProgress = tasks.filter(t => t.status === 'Pending').length; // Assuming pending is in-progress
-  const delayed = tasks.filter(t => new Date(t.deadline) < new Date() && t.status !== 'Completed').length;
-
+  
   const highPriority = tasks.filter(t => t.priority === 'High' && t.status === 'Pending').length;
   const mediumPriority = tasks.filter(t => t.priority === 'Medium' && t.status === 'Pending').length;
   const lowPriority = tasks.filter(t => t.priority === 'Low' && t.status === 'Pending').length;
@@ -33,21 +44,21 @@ export function TaskMonitoring({ tasks }: TaskMonitoringProps) {
                 <span>Completed</span>
                 <span>{completed}/{totalTasks}</span>
               </div>
-              <Progress value={(completed / totalTasks) * 100} className="h-2 [&>div]:bg-green-500"/>
+              <Progress value={totalTasks > 0 ? (completed / totalTasks) * 100 : 0} className="h-2 [&>div]:bg-green-500"/>
             </div>
              <div className="space-y-1">
               <div className="flex justify-between items-center text-xs">
                 <span>In Progress</span>
                 <span>{inProgress}/{totalTasks}</span>
               </div>
-              <Progress value={(inProgress / totalTasks) * 100} className="h-2 [&>div]:bg-yellow-500"/>
+              <Progress value={totalTasks > 0 ? (inProgress / totalTasks) * 100 : 0} className="h-2 [&>div]:bg-yellow-500"/>
             </div>
              <div className="space-y-1">
               <div className="flex justify-between items-center text-xs">
                 <span>Delayed</span>
-                <span>{delayed}/{totalTasks}</span>
+                <span>{isClient ? delayed : 0}/{totalTasks}</span>
               </div>
-              <Progress value={(delayed / totalTasks) * 100} className="h-2 [&>div]:bg-red-500"/>
+              <Progress value={totalTasks > 0 && isClient ? (delayed / totalTasks) * 100 : 0} className="h-2 [&>div]:bg-red-500"/>
             </div>
           </div>
         </div>

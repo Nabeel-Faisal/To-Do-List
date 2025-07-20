@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { MoreHorizontal } from "lucide-react";
+import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -33,6 +34,11 @@ type EmployeeManagementProps = {
 
 export function EmployeeManagement({ employees }: EmployeeManagementProps) {
   const { toast } = useToast();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleActionClick = (action: string, employeeName: string) => {
     toast({
@@ -92,7 +98,7 @@ export function EmployeeManagement({ employees }: EmployeeManagementProps) {
                 <TableCell>{employee.department}</TableCell>
                 <TableCell>{getStatusBadge(employee.status as any)}</TableCell>
                 <TableCell>
-                  {employee.lastLogin ? new Date(employee.lastLogin).toLocaleDateString() : 'N/A'}
+                  {isClient && employee.lastLogin ? format(new Date(employee.lastLogin), 'P') : 'N/A'}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
