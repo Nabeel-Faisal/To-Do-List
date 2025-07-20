@@ -45,6 +45,7 @@ import {
   getNotifications,
   readAllNotifications,
   subscribe,
+  loadInitialData,
 } from "@/lib/mock-data";
 import type { Task, AppNotification, WorkSession } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -90,12 +91,15 @@ export default function DashboardPage() {
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
+    loadInitialData();
     setIsClient(true);
+
     const handleUpdate = () => {
       setAllTasks(getTasks());
       setNotifications(getNotifications());
     };
     const unsubscribe = subscribe(handleUpdate);
+    handleUpdate();
     
     return () => unsubscribe();
   }, []);

@@ -44,6 +44,7 @@ import {
   getNotifications,
   getWorkSessions,
   subscribe,
+  loadInitialData,
 } from "@/lib/mock-data";
 import type { Task, Employee, AppNotification, WorkSession } from "@/lib/types";
 
@@ -58,7 +59,9 @@ export default function AdminDashboardPage() {
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
+    loadInitialData();
     setIsClient(true);
+    
     const handleUpdate = () => {
       setTasks(getTasks());
       setNotifications(getNotifications());
@@ -66,6 +69,8 @@ export default function AdminDashboardPage() {
     };
 
     const unsubscribe = subscribe(handleUpdate);
+    handleUpdate();
+
     return () => unsubscribe();
   }, []);
 

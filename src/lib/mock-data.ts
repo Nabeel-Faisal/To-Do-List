@@ -4,6 +4,7 @@ import type { Task, Employee, AppNotification, WorkSession } from './types';
 // #region State Management
 // Simple in-memory store and a pub/sub mechanism to notify components of changes.
 let listeners: (() => void)[] = [];
+let stateInitialized = false;
 
 let state = {
   tasks: [] as Task[],
@@ -11,67 +12,6 @@ let state = {
   workSessions: [] as WorkSession[],
 };
 
-// #region Employee Data
-export const mockEmployee: Employee = {
-  id: 'emp-001',
-  name: 'Sample Employee',
-  photo: 'https://placehold.co/100x100.png',
-  role: 'Software Engineer',
-  department: 'Technology',
-  status: 'Active',
-  lastLogin: new Date().toISOString(),
-};
-
-export const mockAdmin: Employee = {
-  id: 'adm-001',
-  name: 'Admin User',
-  photo: 'https://placehold.co/100x100.png',
-  role: 'System Administrator',
-  department: 'Administration',
-};
-
-export const allEmployees: Employee[] = [
-  { ...mockEmployee, id: 'emp-001', name: 'Sample Employee' }, 
-  {
-    id: 'emp-002',
-    name: 'Jane Smith',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'Project Manager',
-    department: 'Management',
-    status: 'Active',
-    lastLogin: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-  },
-  {
-    id: 'emp-003',
-    name: 'John Doe',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'Lead Designer',
-    department: 'Design',
-    status: 'On Leave',
-    lastLogin: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
-  },
-  {
-    id: 'emp-004',
-    name: 'Emily White',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'Marketing Specialist',
-    department: 'Marketing',
-    status: 'Active',
-    lastLogin: new Date().toISOString(),
-  },
-  {
-    id: 'emp-005',
-    name: 'Michael Brown',
-    photo: 'https://placehold.co/100x100.png',
-    role: 'QA Tester',
-    department: 'Technology',
-    status: 'Inactive',
-    lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
-  },
-];
-// #endregion
-
-// #region Tasks Data
 const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [
   {
     id: 'task-1',
@@ -164,11 +104,73 @@ const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [
     assignedTo: 'John Doe',
   }
 ];
+
+// #region Employee Data
+export const mockEmployee: Employee = {
+  id: 'emp-001',
+  name: 'Sample Employee',
+  photo: 'https://placehold.co/100x100.png',
+  role: 'Software Engineer',
+  department: 'Technology',
+  status: 'Active',
+  lastLogin: new Date().toISOString(),
+};
+
+export const mockAdmin: Employee = {
+  id: 'adm-001',
+  name: 'Admin User',
+  photo: 'https://placehold.co/100x100.png',
+  role: 'System Administrator',
+  department: 'Administration',
+};
+
+export const allEmployees: Employee[] = [
+  { ...mockEmployee, id: 'emp-001', name: 'Sample Employee' }, 
+  {
+    id: 'emp-002',
+    name: 'Jane Smith',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Project Manager',
+    department: 'Management',
+    status: 'Active',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
+  },
+  {
+    id: 'emp-003',
+    name: 'John Doe',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Lead Designer',
+    department: 'Design',
+    status: 'On Leave',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(),
+  },
+  {
+    id: 'emp-004',
+    name: 'Emily White',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'Marketing Specialist',
+    department: 'Marketing',
+    status: 'Active',
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'emp-005',
+    name: 'Michael Brown',
+    photo: 'https://placehold.co/100x100.png',
+    role: 'QA Tester',
+    department: 'Technology',
+    status: 'Inactive',
+    lastLogin: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(),
+  },
+];
+// #endregion
+
 // #endregion
 
 // Function to safely get data from localStorage only on the client side
-const loadStateFromLocalStorage = () => {
-  if (typeof window === 'undefined') {
+// This should only be called once from a useEffect in a client component.
+export const loadInitialData = () => {
+  if (typeof window === 'undefined' || stateInitialized) {
     return;
   }
   try {
@@ -192,6 +194,8 @@ const loadStateFromLocalStorage = () => {
 
     if (serializedNotifications) {
         state.notifications = JSON.parse(serializedNotifications);
+    } else {
+      state.notifications = [];
     }
     
   } catch (e) {
@@ -201,6 +205,11 @@ const loadStateFromLocalStorage = () => {
       ...task,
       deadline: new Date(task.deadline),
     }));
+    state.workSessions = [];
+    state.notifications = [];
+  } finally {
+    stateInitialized = true;
+    notify();
   }
 };
 
@@ -223,14 +232,8 @@ const saveNotifications = () => {
     }
 };
 
-// Load initial state
-loadStateFromLocalStorage();
-
-
 export function subscribe(listener: () => void) {
   listeners.push(listener);
-  // Immediately call listener to provide initial data
-  listener(); 
   return function unsubscribe() {
     listeners = listeners.filter(l => l !== listener);
   };
