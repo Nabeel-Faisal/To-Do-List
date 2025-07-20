@@ -11,81 +11,6 @@ let state = {
   workSessions: [] as WorkSession[],
 };
 
-// Function to safely get data from localStorage only on the client side
-const loadStateFromLocalStorage = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    const serializedTasks = localStorage.getItem('tasks');
-    const serializedWorkSessions = localStorage.getItem('workSessions');
-    const serializedNotifications = localStorage.getItem('notifications');
-
-    if (serializedTasks) {
-      const parsedTasks = JSON.parse(serializedTasks);
-      state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
-    } else {
-       state.tasks = initialTasksData.map(task => ({
-        ...task,
-        deadline: new Date(task.deadline),
-      }));
-    }
-
-    if (serializedWorkSessions) {
-      state.workSessions = JSON.parse(serializedWorkSessions);
-    }
-
-    if (serializedNotifications) {
-        state.notifications = JSON.parse(serializedNotifications);
-    }
-    
-  } catch (e) {
-    console.error("Failed to load state from localStorage", e);
-    // If loading fails, initialize with default data
-    state.tasks = initialTasksData.map(task => ({
-      ...task,
-      deadline: new Date(task.deadline),
-    }));
-  }
-};
-
-// Function to safely save data to localStorage
-const saveTasks = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('tasks', JSON.stringify(state.tasks));
-  }
-};
-
-const saveWorkSessions = () => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('workSessions', JSON.stringify(state.workSessions));
-    }
-};
-
-const saveNotifications = () => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('notifications', JSON.stringify(state.notifications));
-    }
-};
-
-// Load initial state
-loadStateFromLocalStorage();
-
-
-export function subscribe(listener: () => void) {
-  listeners.push(listener);
-  // Immediately call listener to provide initial data
-  listener(); 
-  return function unsubscribe() {
-    listeners = listeners.filter(l => l !== listener);
-  };
-}
-
-function notify() {
-  listeners.forEach(listener => listener());
-}
-// #endregion
-
 // #region Employee Data
 export const mockEmployee: Employee = {
   id: 'emp-001',
@@ -146,7 +71,7 @@ export const allEmployees: Employee[] = [
 ];
 // #endregion
 
-// #region Tasks
+// #region Tasks Data
 const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [
   {
     id: 'task-1',
@@ -239,7 +164,83 @@ const initialTasksData: Omit<Task, 'deadline'> & { deadline: string }[] = [
     assignedTo: 'John Doe',
   }
 ];
+// #endregion
 
+// Function to safely get data from localStorage only on the client side
+const loadStateFromLocalStorage = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    const serializedTasks = localStorage.getItem('tasks');
+    const serializedWorkSessions = localStorage.getItem('workSessions');
+    const serializedNotifications = localStorage.getItem('notifications');
+
+    if (serializedTasks) {
+      const parsedTasks = JSON.parse(serializedTasks);
+      state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
+    } else {
+       state.tasks = initialTasksData.map(task => ({
+        ...task,
+        deadline: new Date(task.deadline),
+      }));
+    }
+
+    if (serializedWorkSessions) {
+      state.workSessions = JSON.parse(serializedWorkSessions);
+    }
+
+    if (serializedNotifications) {
+        state.notifications = JSON.parse(serializedNotifications);
+    }
+    
+  } catch (e) {
+    console.error("Failed to load state from localStorage", e);
+    // If loading fails, initialize with default data
+    state.tasks = initialTasksData.map(task => ({
+      ...task,
+      deadline: new Date(task.deadline),
+    }));
+  }
+};
+
+// Function to safely save data to localStorage
+const saveTasks = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('tasks', JSON.stringify(state.tasks));
+  }
+};
+
+const saveWorkSessions = () => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('workSessions', JSON.stringify(state.workSessions));
+    }
+};
+
+const saveNotifications = () => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('notifications', JSON.stringify(state.notifications));
+    }
+};
+
+// Load initial state
+loadStateFromLocalStorage();
+
+
+export function subscribe(listener: () => void) {
+  listeners.push(listener);
+  // Immediately call listener to provide initial data
+  listener(); 
+  return function unsubscribe() {
+    listeners = listeners.filter(l => l !== listener);
+  };
+}
+
+function notify() {
+  listeners.forEach(listener => listener());
+}
+
+// #region Tasks
 export const getTasks = (): Task[] => {
   return state.tasks;
 };
