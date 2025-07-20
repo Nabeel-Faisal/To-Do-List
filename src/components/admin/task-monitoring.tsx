@@ -56,7 +56,7 @@ export function TaskMonitoring({ tasks }: TaskMonitoringProps) {
              <div className="space-y-1">
               <div className="flex justify-between items-center text-xs">
                 <span>Delayed</span>
-                <span>{isClient ? delayed : 0}/{totalTasks}</span>
+                <span>{isClient ? delayed : '...'}/{totalTasks}</span>
               </div>
               <Progress value={totalTasks > 0 && isClient ? (delayed / totalTasks) * 100 : 0} className="h-2 [&>div]:bg-red-500"/>
             </div>
