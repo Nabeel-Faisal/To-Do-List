@@ -36,46 +36,49 @@ const defaultEmployee: Employee = {
 };
 
 // This is the getter for all employees now.
-export const allEmployees: Employee[] = state.employees;
+export let allEmployees: Employee[] = [];
 
 // Function to safely get data from localStorage only on the client side
 export const loadInitialData = () => {
-  if (typeof window === 'undefined' || stateInitialized) {
+  if (typeof window === 'undefined') {
     return;
   }
-  try {
-    const savedTasks = localStorage.getItem('tasks');
-    const savedWorkSessions = localStorage.getItem('workSessions');
-    const savedNotifications = localStorage.getItem('notifications');
-    const savedEmployees = localStorage.getItem('employees');
-    
-    if (savedTasks) {
-      const parsedTasks = JSON.parse(savedTasks);
-      state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
-    } else {
+  if (!stateInitialized) {
+    try {
+      const savedTasks = localStorage.getItem('tasks');
+      const savedWorkSessions = localStorage.getItem('workSessions');
+      const savedNotifications = localStorage.getItem('notifications');
+      const savedEmployees = localStorage.getItem('employees');
+      
+      if (savedTasks) {
+        const parsedTasks = JSON.parse(savedTasks);
+        state.tasks = parsedTasks.map((t: any) => ({ ...t, deadline: new Date(t.deadline) }));
+      } else {
+        state.tasks = [];
+      }
+
+      state.workSessions = savedWorkSessions ? JSON.parse(savedWorkSessions) : [];
+      state.notifications = savedNotifications ? JSON.parse(savedNotifications) : [];
+
+      if (savedEmployees) {
+          state.employees = JSON.parse(savedEmployees);
+      } else {
+          // If no employees, start with admin
+          state.employees = [mockAdmin];
+      }
+      
+    } catch (e) {
+      console.error("Failed to initialize state from localStorage", e);
+      // If loading fails, initialize with default data
       state.tasks = [];
+      state.workSessions = [];
+      state.notifications = [];
+      state.employees = [mockAdmin];
+    } finally {
+      allEmployees = [...state.employees];
+      stateInitialized = true;
+      notify();
     }
-
-    state.workSessions = savedWorkSessions ? JSON.parse(savedWorkSessions) : [];
-    state.notifications = savedNotifications ? JSON.parse(savedNotifications) : [];
-
-    if (savedEmployees) {
-        state.employees = JSON.parse(savedEmployees);
-    } else {
-        // If no employees, start with admin and one default employee
-        state.employees = [mockAdmin, defaultEmployee];
-    }
-    
-  } catch (e) {
-    console.error("Failed to initialize state from localStorage", e);
-    // If loading fails, initialize with default data
-    state.tasks = [];
-    state.workSessions = [];
-    state.notifications = [];
-    state.employees = [mockAdmin, defaultEmployee];
-  } finally {
-    stateInitialized = true;
-    notify();
   }
 };
 
@@ -97,6 +100,7 @@ export function subscribe(listener: () => void) {
 }
 
 function notify() {
+  allEmployees = [...state.employees];
   listeners.forEach(listener => listener());
 }
 
@@ -113,7 +117,7 @@ export const getCurrentEmployee = (): Employee | null => {
     if (typeof window === 'undefined') return null;
     const currentId = sessionStorage.getItem('currentEmployeeId');
     if (!currentId) return null;
-    return state.employees.find(e => e.id === currentId) || null;
+    return allEmployees.find(e => e.id === currentId) || null;
 }
 // #endregion
 
@@ -175,12 +179,12 @@ export const updateTask = (taskId: string, updates: Partial<Task>) => {
 // #region Notifications
 export const getNotifications = (): AppNotification[] => {
   const employee = getCurrentEmployee();
-  if (!employee) return [];
+  if (!employee) return state.notifications;
   // Admins see all notifications, employees only see their own.
   if (employee.role === 'System Administrator') {
       return state.notifications;
   }
-  return state.notifications.filter(n => n.recipient === employee.name);
+  return state.notifications.filter(n => n.recipient === employee.name || !n.recipient);
 };
 
 export const addNotification = (notification: Omit<AppNotification, 'id'> & {id?: string}) => {
