@@ -59,14 +59,19 @@ export function AdminLayout({ children, activeTab }: AdminLayoutProps) {
     const unsubscribe = subscribe(handleUpdate);
     handleUpdate();
 
-    // If there's a tab in the URL, go to the main page with that tab
-    const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl) {
-      router.replace(`/admin?tab=${tabFromUrl}`);
-    }
-
     return () => unsubscribe();
-  }, [router, searchParams]);
+  }, []);
+
+  React.useEffect(() => {
+    if (isClient) {
+      // If there's a tab in the URL, go to the main page with that tab
+      const tabFromUrl = searchParams.get('tab');
+      if (tabFromUrl) {
+        router.replace(`/admin?tab=${tabFromUrl}`);
+      }
+    }
+  }, [isClient, router, searchParams]);
+
 
   const handleLogout = () => {
     router.push('/');
