@@ -55,7 +55,6 @@ export function UpcomingDeadlines({ tasks }: UpcomingDeadlinesProps) {
           classNames={{
             day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90",
           }}
-          disabled={(d) => date ? d < new Date(new Date().setHours(0,0,0,0)) : true}
         />
         <div className="w-full mt-4 space-y-2">
             <h4 className="font-medium">
