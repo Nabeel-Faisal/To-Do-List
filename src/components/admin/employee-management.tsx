@@ -81,7 +81,7 @@ export function EmployeeManagement({ employees }: EmployeeManagementProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employees.map((employee) => (
+            {isClient ? employees.map((employee) => (
               <TableRow key={employee.id}>
                 <TableCell className="font-medium flex items-center gap-2">
                   <Avatar className="h-8 w-8">
@@ -98,7 +98,7 @@ export function EmployeeManagement({ employees }: EmployeeManagementProps) {
                 <TableCell>{employee.department}</TableCell>
                 <TableCell>{getStatusBadge(employee.status as any)}</TableCell>
                 <TableCell>
-                  {isClient && employee.lastLogin ? format(new Date(employee.lastLogin), 'P') : 'N/A'}
+                  {employee.lastLogin ? format(new Date(employee.lastLogin), 'P') : 'N/A'}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -117,7 +117,13 @@ export function EmployeeManagement({ employees }: EmployeeManagementProps) {
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  Loading employees...
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>

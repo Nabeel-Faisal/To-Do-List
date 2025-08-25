@@ -19,8 +19,9 @@ export function ProductivityChart({ tasks }: ProductivityChartProps) {
   React.useEffect(() => {
     setIsClient(true);
     const data: { name: string; total: number }[] = [];
+    const today = new Date();
     for (let i = 6; i >= 0; i--) {
-      const date = subDays(new Date(), i);
+      const date = subDays(today, i);
       const dayName = format(date, "EEE");
       const completedCount = tasks.filter(
         (task) =>

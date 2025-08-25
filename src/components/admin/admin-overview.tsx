@@ -24,14 +24,14 @@ export function AdminOverview({ employees, tasks }: AdminOverviewProps) {
   const totalEmployees = employees.length;
   const pendingTasks = tasks.filter(task => task.status === 'Pending').length;
   const departments = new Set(employees.map(e => e.department)).size;
-  const attendanceToday = Math.floor(totalEmployees * 0.9) || 0;
+  const attendanceToday = isClient ? (Math.floor(totalEmployees * 0.9) || 0) : 0;
 
   const overviewItems = [
     { title: "Total Employees", value: totalEmployees, icon: Users, color: "text-blue-500" },
     { title: "Tasks Completed Today", value: isClient ? completedToday : '...', icon: CheckCircle, color: "text-green-500" },
     { title: "All Pending Tasks", value: pendingTasks, icon: Clock, color: "text-yellow-500" },
     { title: "Departments", value: departments, icon: Building, color: "text-indigo-500" },
-    { title: "Attendance Today", value: `${attendanceToday}/${totalEmployees}`, icon: CalendarCheck, color: "text-purple-500" },
+    { title: "Attendance Today", value: isClient ? `${attendanceToday}/${totalEmployees}` : '...', icon: CalendarCheck, color: "text-purple-500" },
   ];
 
   return (
